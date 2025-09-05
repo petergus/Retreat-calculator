@@ -1,0 +1,430 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Retreat Center Pro‑Forma Calculator</title>
+  <style>
+    :root {
+      --bg:#f7f7fb;
+      --card:#ffffff;
+      --ink:#111;
+      --muted:#555;
+      --line:#e4e6ef;
+      --accent:#2b6cb0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.4;
+    }
+    header {
+      padding: 20px 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--card);
+      position: sticky; top: 0; z-index: 10;
+    }
+    header h1 { margin: 0 0 4px; font-size: 20px; }
+    header p { margin: 0; color: var(--muted); font-size: 14px; }
+    main { max-width: 1100px; margin: 16px auto; padding: 0 16px 40px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .span-4 { grid-column: span 4; }
+    .span-6 { grid-column: span 6; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+    h2 { font-size: 16px; margin: 0 0 12px; }
+    h3 { font-size: 14px; margin: 12px 0 8px; color: var(--muted); }
+    label { display:block; font-size: 12px; color: var(--muted); margin: 10px 0 6px; }
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      font-size: 14px;
+      color: var(--ink);
+    }
+    .row { display:flex; gap:10px; }
+    .row > div { flex:1; }
+    .toolbar { display:flex; gap:10px; flex-wrap: wrap; }
+    button {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    table { width:100%; border-collapse: collapse; font-size:14px; }
+    th, td { text-align:right; padding:10px; border-bottom:1px solid var(--line); }
+    th:first-child, td:first-child { text-align:left; }
+    tfoot td { font-weight:600; }
+    .pill { display:inline-block; padding:2px 8px; border:1px solid var(--line); border-radius:999px; font-size:12px; color:var(--muted); background:#fff;}
+    @media (max-width: 900px){
+      .span-4, .span-6, .span-8 { grid-column: span 12; }
+    }
+    .note { font-size:12px; color: var(--muted); margin-top:8px;}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Retreat Center Calculator</h1>
+    <p>Play with price, nights, cabins, and costs. See EBITDA and cash after debt update live.</p>
+  </header>
+  <main>
+    <div class="grid">
+      <div class="card span-4">
+        <h2>Preset</h2>
+        <label for="preset">Choose a starting point</label>
+        <select id="preset">
+          <option value="starter">Starter, 3 cabins</option>
+          <option value="expanded" selected>Expanded, 5 cabins</option>
+        </select>
+        <div class="note">You can change any field after picking a preset.</div>
+
+        <h2 style="margin-top:16px;">Project</h2>
+        <label>Purchase price (CHF)
+          <input type="number" id="purchase" value="1200000" step="10000" min="0">
+        </label>
+        <label>Renovation or lodge build (CHF)
+          <input type="number" id="renovation" value="600000" step="10000" min="0">
+        </label>
+        <div class="row">
+          <div>
+            <label>Cabins (#)
+              <input type="number" id="cabins" value="5" min="0" step="1">
+            </label>
+          </div>
+          <div>
+            <label>Cabin cost per unit (CHF)
+              <input type="number" id="cabin_unit" value="100000" step="5000" min="0">
+            </label>
+          </div>
+        </div>
+        <label>Infrastructure, permits, site works (CHF)
+          <input type="number" id="infra" value="250000" step="10000" min="0">
+        </label>
+
+        <h2 style="margin-top:16px;">Finance</h2>
+        <div class="row">
+          <div>
+            <label>LTV loan %
+              <input type="number" id="ltv" value="70" step="1" min="0" max="95">
+            </label>
+          </div>
+          <div>
+            <label>Interest rate %
+              <input type="number" id="interest" value="3.8" step="0.1" min="0">
+            </label>
+          </div>
+          <div>
+            <label>Amortization % of loan / yr
+              <input type="number" id="amort" value="2.0" step="0.1" min="0">
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card span-4">
+        <h2>Operations</h2>
+        <div class="row">
+          <div>
+            <label>Nights open per year
+              <input type="number" id="nights" value="250" step="10" min="0" max="365">
+            </label>
+          </div>
+          <div>
+            <label>Avg guests per night
+              <input type="number" id="guests" value="12" step="1" min="0">
+            </label>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Price per guest-night (CHF, VAT incl)
+              <input type="number" id="price_pppn" value="450" step="10" min="0">
+            </label>
+          </div>
+          <div>
+            <label>VAT % on lodging/food
+              <input type="number" id="vat" value="12" step="0.1" min="0">
+            </label>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Variable cost per guest-night (CHF)
+              <input type="number" id="var_cost" value="35" step="1" min="0">
+            </label>
+          </div>
+          <div>
+            <label>Maintenance % of structures per year
+              <input type="number" id="maint_pct" value="1.5" step="0.1" min="0">
+            </label>
+          </div>
+        </div>
+        <h3>Fixed opex per year</h3>
+        <label>Staff total (CHF, incl. taxes)
+          <input type="number" id="staff" value="155000" step="5000" min="0">
+        </label>
+        <div class="row">
+          <div>
+            <label>Utilities (CHF)
+              <input type="number" id="utilities" value="18000" step="1000" min="0">
+            </label>
+          </div>
+          <div>
+            <label>Insurance (CHF)
+              <input type="number" id="insurance" value="6000" step="500" min="0">
+            </label>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Marketing (CHF)
+              <input type="number" id="marketing" value="12000" step="1000" min="0">
+            </label>
+          </div>
+          <div>
+            <label>Misc (CHF)
+              <input type="number" id="misc" value="10000" step="500" min="0">
+            </label>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Property fee per building (CHF)
+              <input type="number" id="property_fee_per" value="860" step="50" min="0">
+            </label>
+          </div>
+          <div>
+            <label>Buildings auto-count
+              <input type="text" id="buildings" value="6" disabled>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card span-4">
+        <h2>Results</h2>
+        <div class="toolbar" style="margin-bottom:8px;">
+          <button class="primary" id="saveCsv">Export row as CSV</button>
+          <button id="reset">Reset preset</button>
+        </div>
+        <table id="results">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Total project cost</td><td id="capex">–</td></tr>
+            <tr><td>Loan principal</td><td id="loan">–</td></tr>
+            <tr><td>Equity needed</td><td id="equity">–</td></tr>
+            <tr><td>Guest-nights</td><td id="guest_nights">–</td></tr>
+            <tr><td>Gross revenue</td><td id="gross_rev">–</td></tr>
+            <tr><td>Revenue net of VAT</td><td id="net_rev">–</td></tr>
+            <tr><td>Variable costs</td><td id="var_costs">–</td></tr>
+            <tr><td>Fixed opex</td><td id="fixed_opex">–</td></tr>
+            <tr><td><span class="pill">EBITDA</span></td><td id="ebitda">–</td></tr>
+            <tr><td>Interest</td><td id="interest_out">–</td></tr>
+            <tr><td>Amortization</td><td id="amort_out">–</td></tr>
+            <tr><td><span class="pill">Cash after debt</span></td><td id="cash_after">–</td></tr>
+            <tr><td>Unlevered cap rate</td><td id="cap_rate">–</td></tr>
+          </tbody>
+        </table>
+        <div class="note">All values are annual in CHF. VAT is stripped from revenue. Cash after debt includes interest and amortization.</div>
+      </div>
+
+      <div class="card span-12">
+        <h2>Notes</h2>
+        <ul>
+          <li>Buildings count is farmhouse plus cabins. Property fee is per building.</li>
+          <li>Maintenance is a percent of structures only. Structures include renovation, cabins, and infrastructure.</li>
+          <li>Unlevered cap rate is EBITDA divided by total project cost.</li>
+          <li>Prices include VAT. Revenue net of VAT removes the VAT percent you set.</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const inputs = [
+      "purchase","renovation","cabins","cabin_unit","infra",
+      "ltv","interest","amort",
+      "nights","guests","price_pppn","vat","var_cost","maint_pct",
+      "staff","utilities","insurance","marketing","misc","property_fee_per"
+    ].map($);
+
+    function nf(x){ return x.toLocaleString(undefined, {maximumFractionDigits:0}); }
+    function money(x){ return (isFinite(x)? "CHF " + x.toLocaleString(undefined,{minimumFractionDigits:0, maximumFractionDigits:0}) : "–"); }
+    function pct(x){ return (isFinite(x)? (x*100).toFixed(2) + " %" : "–"); }
+    function v(el){ return parseFloat(el.value || "0"); }
+
+    function setPreset(preset){
+      if(preset==="starter"){
+        $("purchase").value = 700000;
+        $("renovation").value = 300000;
+        $("cabins").value = 3;
+        $("cabin_unit").value = 100000;
+        $("infra").value = 150000;
+        $("nights").value = 200;
+        $("guests").value = 8;
+        $("price_pppn").value = 350;
+        $("staff").value = 120000;
+      } else {
+        $("purchase").value = 1200000;
+        $("renovation").value = 600000;
+        $("cabins").value = 5;
+        $("cabin_unit").value = 100000;
+        $("infra").value = 250000;
+        $("nights").value = 250;
+        $("guests").value = 12;
+        $("price_pppn").value = 450;
+        $("staff").value = 155000;
+      }
+      calc();
+    }
+
+    function calc(){
+      const purchase = v($("purchase"));
+      const renovation = v($("renovation"));
+      const cabins = v($("cabins"));
+      const cabin_unit = v($("cabin_unit"));
+      const infra = v($("infra"));
+
+      const ltv = v($("ltv"))/100;
+      const interest = v($("interest"))/100;
+      const amort = v($("amort"))/100;
+
+      const nights = v($("nights"));
+      const guests = v($("guests"));
+      const price_pppn = v($("price_pppn"));
+      const vat = v($("vat"))/100;
+      const var_cost = v($("var_cost"));
+      const maint_pct = v($("maint_pct"))/100;
+
+      const staff = v($("staff"));
+      const utilities = v($("utilities"));
+      const insurance = v($("insurance"));
+      const marketing = v($("marketing"));
+      const misc = v($("misc"));
+      const property_fee_per = v($("property_fee_per"));
+
+      const buildings = 1 + cabins;
+      $("buildings").value = buildings;
+
+      const structures_cost = renovation + cabins * cabin_unit + infra;
+      const capex = purchase + structures_cost;
+
+      const loan = capex * ltv;
+      const equity = capex - loan;
+
+      const guest_nights = nights * guests;
+      const gross_rev = guest_nights * price_pppn;
+      const net_rev = gross_rev / (1 + vat);
+
+      const variable_costs = guest_nights * var_cost;
+      const maintenance = structures_cost * maint_pct;
+      const property_fee = buildings * property_fee_per;
+
+      const fixed_opex = staff + utilities + insurance + marketing + misc + maintenance + property_fee;
+      const ebitda = net_rev - variable_costs - fixed_opex;
+
+      const interest_out = loan * interest;
+      const amort_out = loan * amort;
+
+      const cash_after = ebitda - interest_out - amort_out;
+      const cap_rate = capex>0 ? ebitda / capex : 0;
+
+      $("capex").textContent = money(capex);
+      $("loan").textContent = money(loan);
+      $("equity").textContent = money(equity);
+      $("guest_nights").textContent = nf(guest_nights);
+      $("gross_rev").textContent = money(gross_rev);
+      $("net_rev").textContent = money(net_rev);
+      $("var_costs").textContent = money(variable_costs);
+      $("fixed_opex").textContent = money(fixed_opex);
+      $("ebitda").textContent = money(ebitda);
+      $("interest_out").textContent = money(interest_out);
+      $("amort_out").textContent = money(amort_out);
+      $("cash_after").textContent = money(cash_after);
+      $("cap_rate").textContent = pct(cap_rate);
+    }
+
+    inputs.forEach(el => el.addEventListener("input", calc));
+    $("preset").addEventListener("change", (e)=> setPreset(e.target.value));
+    $("reset").addEventListener("click", ()=> setPreset($("preset").value));
+
+    $("saveCsv").addEventListener("click", ()=>{
+      const row = {
+        preset: $("preset").value,
+        purchase: v($("purchase")),
+        renovation: v($("renovation")),
+        cabins: v($("cabins")),
+        cabin_unit: v($("cabin_unit")),
+        infra: v($("infra")),
+        ltv: v($("ltv")),
+        interest: v($("interest")),
+        amort: v($("amort")),
+        nights: v($("nights")),
+        guests: v($("guests")),
+        price_pppn: v($("price_pppn")),
+        vat: v($("vat")),
+        var_cost: v($("var_cost")),
+        maint_pct: v($("maint_pct")),
+        staff: v($("staff")),
+        utilities: v($("utilities")),
+        insurance: v($("insurance")),
+        marketing: v($("marketing")),
+        misc: v($("misc")),
+        property_fee_per: v($("property_fee_per")),
+        buildings: 1 + v($("cabins")),
+        capex: $("capex").textContent.replace(/[^0-9.-]/g,""),
+        loan: $("loan").textContent.replace(/[^0-9.-]/g,""),
+        equity: $("equity").textContent.replace(/[^0-9.-]/g,""),
+        guest_nights: $("guest_nights").textContent.replace(/[^0-9.-]/g,""),
+        gross_rev: $("gross_rev").textContent.replace(/[^0-9.-]/g,""),
+        net_rev: $("net_rev").textContent.replace(/[^0-9.-]/g,""),
+        variable_costs: $("var_costs").textContent.replace(/[^0-9.-]/g,""),
+        fixed_opex: $("fixed_opex").textContent.replace(/[^0-9.-]/g,""),
+        ebitda: $("ebitda").textContent.replace(/[^0-9.-]/g,""),
+        interest_out: $("interest_out").textContent.replace(/[^0-9.-]/g,""),
+        amort_out: $("amort_out").textContent.replace(/[^0-9.-]/g,""),
+        cash_after: $("cash_after").textContent.replace(/[^0-9.-]/g,""),
+        cap_rate_pct: $("cap_rate").textContent
+      };
+      const headers = Object.keys(row);
+      const vals = headers.map(h => row[h]);
+      const csv = headers.join(",") + "\n" + vals.join(",");
+      const blob = new Blob([csv], {type: "text/csv"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "retreat_row.csv";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    // init
+    setPreset("expanded");
+    calc();
+  </script>
+</body>
+</html>
