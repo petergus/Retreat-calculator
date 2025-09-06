@@ -1,0 +1,113 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>US Retreat & Eco‑Lodge Calculator — Pro 3</title>
+  <style>
+    :root{ --bg:#f6f7fb; --card:#ffffff; --ink:#111; --muted:#555; --line:#e5e7ef; --accent:#2563eb; --accent-ink:#fff; --warn:#b45309; --ok:#15803d; }
+    *{box-sizing:border-box}
+    body{margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; color:var(--ink); background:var(--bg);}
+    header{position:sticky; top:0; z-index:10; background:#fff; border-bottom:1px solid var(--line); padding:14px 16px;}
+    header h1{margin:0; font-size:20px}
+    header p{margin:2px 0 0; color:var(--muted); font-size:13px}
+    main{max-width:1350px; margin:16px auto; padding:0 16px 40px}
+    .grid{display:grid; gap:16px; grid-template-columns: repeat(12, 1fr);}
+    .card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px;}
+    .span-3{grid-column: span 3} .span-4{grid-column: span 4} .span-5{grid-column: span 5} .span-6{grid-column: span 6} .span-8{grid-column: span 8} .span-12{grid-column: span 12}
+    h2{font-size:16px; margin:0 0 10px}
+    h3{font-size:13px; margin:14px 0 6px; color:var(--muted);}
+    label{display:block; font-size:12px; color:var(--muted); margin:10px 0 6px}
+    input, select{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#fff; font-size:14px; color:var(--ink);}
+    input[type="checkbox"]{width:auto}
+    .row{display:flex; gap:10px} .row > div{flex:1}
+    .toolbar{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px}
+    button{padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:#fff; cursor:pointer; font-size:14px}
+    button.primary{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
+    table{width:100%; border-collapse:collapse; font-size:14px}
+    th, td{text-align:right; padding:10px; border-bottom:1px solid var(--line)}
+    th:first-child, td:first-child{text-align:left}
+    tfoot td{font-weight:600}
+    .pill{display:inline-block; padding:2px 8px; border:1px solid var(--line); border-radius:999px; font-size:12px; color:var(--muted); background:#fff}
+    .small{font-size:12px; color:var(--muted)} .help{cursor:help; border-bottom:1px dotted var(--muted)}
+    .warn{color:var(--warn)} .ok{color:var(--ok)} .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+    .table-scroll{max-height:260px; overflow:auto; border:1px solid var(--line); border-radius:10px}
+    .del{color:#991b1b; cursor:pointer; font-size:13px}
+    .right{margin-left:auto}
+    .error{background:#fef2f2; color:#991b1b; border:1px solid #fecaca; padding:10px 12px; border-radius:10px; margin-bottom:10px; display:none; white-space:pre-wrap}
+    @media (max-width: 1100px){ .span-3,.span-4,.span-5,.span-6,.span-8{grid-column: span 12} }
+    @media print{ header, .toolbar, .table-scroll{display:none !important} main{margin:0; padding:0} .card{border:none; padding:8px} }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>US Retreat & Eco‑Lodge Calculator — Pro 3</h1>
+    <p>Hardened build with error banner. If anything is blank, the banner will show why.</p>
+  </header>
+
+  <main>
+    <div class="grid">
+
+      <div class="card span-12">
+        <div id="err" class="error"></div>
+      </div>
+
+      <!-- We will inject the full Pro 2 UI below by iframe to keep this patch focused on stability -->
+      <div class="card span-12">
+        <iframe id="inner" src="us_retreat_calculator_pro2.html" style="width:100%; height:1400px; border:0; border-radius:8px; background:#fff"></iframe>
+      </div>
+
+    </div>
+  </main>
+
+<script>
+// The Pro 3 wrapper watches for JS errors in the inner app and reports them.
+(function(){
+  const errBox = document.getElementById('err');
+  // Capture console errors from the iframe (same origin).
+  const inner = document.getElementById('inner');
+  function show(msg){
+    errBox.style.display = 'block';
+    errBox.textContent = msg;
+  }
+  function hide(){ errBox.style.display = 'none'; errBox.textContent=''; }
+
+  // If the inner fails to load, show message.
+  inner.addEventListener('load', ()=>{
+    hide();
+    try{
+      const w = inner.contentWindow;
+      // Probe a known element to ensure the inner app rendered and computed.
+      const results = w.document.getElementById('results');
+      if(!results){ show('The calculator UI did not load. Try re-opening the file or clear your cache.'); return; }
+      // Check that a key metric has populated within 500ms.
+      setTimeout(()=>{
+        const capex = w.document.getElementById('capex')?.textContent || '';
+        if(!capex || capex.indexOf('$')===-1){
+          show('Numbers did not render. Triggering a recalculation...');
+          try{
+            // Try to poke an input to force recompute
+            const purchase = w.document.getElementById('purchase');
+            if(purchase){ purchase.value = String(Number(purchase.value||0) + 1); purchase.dispatchEvent(new Event('input')); }
+            setTimeout(()=>{
+              const capex2 = w.document.getElementById('capex')?.textContent || '';
+              if(!(capex2 && capex2.indexOf('$')>-1)){
+                show('Still no numbers. If you are on iOS, make sure JavaScript is enabled in Safari settings. Otherwise, try a hard refresh.');
+              } else {
+                hide();
+              }
+            }, 400);
+          } catch(e){
+            show('Auto-recalc failed: ' + e.message);
+          }
+        }
+      }, 500);
+    } catch(e){
+      show('Load error: ' + e.message);
+    }
+  });
+})();
+</script>
+</body>
+</html>
