@@ -1,0 +1,286 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>User Manual - Finance & Taxes Deep Dive (US Retreat Calculator Pro v3)</title>
+  <style>
+    :root{ --bg:#f8fafc; --card:#ffffff; --ink:#0f172a; --muted:#475569; --line:#e2e8f0; --accent:#2563eb; --good:#16a34a; --warn:#b45309; }
+    *{box-sizing:border-box}
+    body{margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; background:var(--bg); color:var(--ink);}
+    header{background:#fff; border-bottom:1px solid var(--line); padding:18px 16px; position:sticky; top:0; z-index:5}
+    header h1{margin:0; font-size:22px}
+    header p{margin:6px 0 0; color:var(--muted); font-size:14px}
+    main{max-width:1000px; margin:0 auto; padding:24px 16px 100px}
+    .toc{background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:18px}
+    .toc a{color:var(--accent); text-decoration:none}
+    .toc ul{margin:0; padding-left:18px}
+    section{background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:18px}
+    h2{margin:0 0 10px; font-size:18px}
+    h3{margin:16px 0 8px; font-size:16px; color:var(--muted)}
+    p{line-height:1.6; margin:10px 0}
+    ul{margin:8px 0 8px 20px}
+    code, .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 90%}
+    .ex{background:#fefce8; border:1px solid #fde68a; border-radius:8px; padding:10px 12px; margin:10px 0}
+    .callout{border-left:4px solid var(--accent); background:#f1f5f9; padding:10px 12px; border-radius:8px; margin:10px 0}
+    .pill{display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid var(--line); font-size:12px; background:#f8fafc; color:#334155}
+    .tag{display:inline-block; background:#eef2ff; color:#3730a3; border:1px solid #e0e7ff; padding:2px 8px; border-radius:999px; font-size:12px}
+    .grid{display:grid; gap:12px; grid-template-columns: 1fr 1fr}
+    .tbl{width:100%; border-collapse:collapse; font-size:14px}
+    .tbl th,.tbl td{border-bottom:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top}
+    .tbl th{background:#f8fafc}
+    a.help{color:var(--accent)}
+    footer{color:var(--muted); font-size:12px; text-align:center; margin-top:60px}
+    @media (max-width: 780px){ .grid{grid-template-columns: 1fr} }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Finance & Taxes Deep Dive</h1>
+    <p>Plain-English guide for all banking, lending, and tax terms used in the US Retreat & Eco‑Lodge Calculator Pro v3.</p>
+  </header>
+  <main>
+    <section class="toc">
+      <h2>Contents</h2>
+      <ul>
+        <li><a href="#lending">1. Lending concepts</a></li>
+        <li><a href="#debt-math">2. Debt math and payments</a></li>
+        <li><a href="#closing">3. Closing costs, points, and fees</a></li>
+        <li><a href="#prepay">4. Prepayment rules</a></li>
+        <li><a href="#reserves">5. Escrows, reserves, and holdbacks</a></li>
+        <li><a href="#valuation">6. Income, NOI, EBITDA, cap rate, and value</a></li>
+        <li><a href="#taxes">7. US taxes you may face</a></li>
+        <li><a href="#property-tax">8. Property tax and assessed value</a></li>
+        <li><a href="#ops-taxes">9. Lodging, sales, and occupancy taxes</a></li>
+        <li><a href="#payroll">10. Payroll, burden, and labor</a></li>
+        <li><a href="#ranges">11. Typical ranges and why they vary</a></li>
+        <li><a href="#sensitivity">12. What matters most for cash after debt</a></li>
+        <li><a href="#mapping">13. Mapping terms to the calculator inputs</a></li>
+        <li><a href="#glossary">14. Glossary with synonyms</a></li>
+      </ul>
+    </section>
+
+    <section id="lending">
+      <h2>1. Lending concepts</h2>
+      <table class="tbl">
+        <tr><th>Term</th><th>Plain meaning</th><th>Also called</th><th>Why it matters</th></tr>
+        <tr>
+          <td><b>LTV</b> (Loan‑to‑Value)</td>
+          <td>How much of the cost base the lender covers as a percent.</td>
+          <td>Advance rate, leverage</td>
+          <td>Higher LTV means less cash needed now, but more debt service later.</td>
+        </tr>
+        <tr>
+          <td><b>LTC</b> (Loan‑to‑Cost)</td>
+          <td>Percent of <i>total project cost</i> the lender will fund.</td>
+          <td>Construction advance %, rehab leverage</td>
+          <td>Some lenders cap loan by cost instead of value. Impacts how much you can borrow.</td>
+        </tr>
+        <tr>
+          <td><b>DSCR</b></td>
+          <td>EBITDA divided by annual debt service.</td>
+          <td>Debt coverage, coverage ratio</td>
+          <td>Lenders want DSCR ≥ 1.20 to 1.35. Lower DSCR can mean no loan or a smaller loan.</td>
+        </tr>
+        <tr>
+          <td><b>Debt Yield</b></td>
+          <td>EBITDA divided by total loan amount.</td>
+          <td>DY</td>
+          <td>Quick risk check for lenders. Many want ≥ 10 percent.</td>
+        </tr>
+        <tr>
+          <td><b>Amortization</b></td>
+          <td>Schedule that pays interest and principal every year until the loan is zero.</td>
+          <td>Amort, P&I</td>
+          <td>Longer amort lowers payments but you pay more total interest.</td>
+        </tr>
+        <tr>
+          <td><b>Interest‑only</b></td>
+          <td>You pay only interest for a period. Principal stays the same.</td>
+          <td>I/O period</td>
+          <td>Lowers early payments. But a big step-up when amort starts.</td>
+        </tr>
+        <tr>
+          <td><b>Fixed vs Variable Rate</b></td>
+          <td>Fixed does not change. Variable moves with an index plus a margin.</td>
+          <td>ARM, floating rate</td>
+          <td>Variable can be cheaper at first but risky if rates rise.</td>
+        </tr>
+      </table>
+      <div class="ex"><b>Example</b>: Loan A at 70 percent LTV and 6.8 percent for 20 years. Loan B at 65 percent LTV and 7.5 percent for 15 years.</div>
+    </section>
+
+    <section id="debt-math">
+      <h2>2. Debt math and payments</h2>
+      <p><b>Annual payment (amortized)</b> = <span class="mono">P × i ÷ (1 − (1+i)^−N)</span>, where <span class="mono">P</span> is principal, <span class="mono">i</span> is yearly rate, <span class="mono">N</span> is years.</p>
+      <p><b>Monthly version</b>: use monthly rate and months as <span class="mono">i = r/12</span>, <span class="mono">N = years × 12</span>.</p>
+      <p><b>Blended payments</b>: If you have two loans, total debt service is the sum of each loan's payment.</p>
+      <div class="callout">The calculator uses annual payments for clarity. You can convert to monthly if needed.</div>
+      <h3>Common pitfalls</h3>
+      <ul>
+        <li>Comparing a 15‑year loan to a 25‑year loan without adjusting the payment basis.</li>
+        <li>Ignoring adjustable rate resets.</li>
+        <li>Forgetting balloon payments on short terms.</li>
+      </ul>
+    </section>
+
+    <section id="closing">
+      <h2>3. Closing costs, points, and fees</h2>
+      <table class="tbl">
+        <tr><th>Item</th><th>Plain meaning</th><th>Also called</th><th>Typical range</th></tr>
+        <tr><td>Origination fee</td><td>Lender's fee to make the loan.</td><td>Points</td><td>0.5 to 2.0 percent of the loan.</td></tr>
+        <tr><td>Third‑party costs</td><td>Appraisal, environmental, survey, legal, title, recording.</td><td>Due diligence</td><td>$5k to $30k+ depending on deal size.</td></tr>
+        <tr><td>Rate buy‑down</td><td>Upfront points to lower the rate.</td><td>Discount points</td><td>Each point may cut 0.125 to 0.25 percent off the rate.</td></tr>
+      </table>
+      <p>The calculator lets you enter a simple dollar number per loan for closing costs.</p>
+    </section>
+
+    <section id="prepay">
+      <h2>4. Prepayment rules</h2>
+      <table class="tbl">
+        <tr><th>Rule</th><th>Plain meaning</th><th>Also called</th><th>Notes</th></tr>
+        <tr><td>Lockout</td><td>You cannot pay the loan off early for a period.</td><td>Hard lock</td><td>Common in commercial loans years 1‑2.</td></tr>
+        <tr><td>Prepayment penalty</td><td>Extra fee if you repay early.</td><td>Yield maintenance, step‑down, defeasance</td><td>Ask for a step‑down schedule if possible.</td></tr>
+      </table>
+    </section>
+
+    <section id="reserves">
+      <h2>5. Escrows, reserves, and holdbacks</h2>
+      <ul>
+        <li><b>Escrow/Impound</b>: Lender collects monthly for taxes and insurance.</li>
+        <li><b>Replacement reserve</b>: You set money aside for big future items. In the calculator this is a percent of structures each year.</li>
+        <li><b>Operating reserve</b>: Cash buffer at close, e.g., 3 to 6 months of expenses.</li>
+        <li><b>Construction holdback</b>: Lender funds construction in draws as you build.</li>
+      </ul>
+      <div class="ex"><b>Tip</b>: The calculator models replacement reserve in opex. If your lender requires an operating reserve at close, add it to CapEx as a custom line (not financed) so equity reflects it.</div>
+    </section>
+
+    <section id="valuation">
+      <h2>6. Income, NOI, EBITDA, cap rate, and value</h2>
+      <p><b>Gross revenue</b> = Lodging + Meals + Extras.</p>
+      <p><b>Net revenue</b> ignores pass‑through taxes (you collect and remit).</p>
+      <p><b>Variable costs</b> scale with guest‑nights (food, amenities).</p>
+      <p><b>Fixed opex</b> are mostly the same each month (staff, utilities, insurance, property tax, maintenance, reserve).</p>
+      <p><b>EBITDA</b> = Net revenue − all operating costs. No interest and no depreciation.</p>
+      <p><b>NOI</b> (Net Operating Income) is similar to EBITDA here since we do not include non‑cash items.</p>
+      <p><b>Cap rate</b> converts income into value. <span class="mono">Value = EBITDA ÷ Cap rate</span>.</p>
+      <div class="ex"><b>Example</b>: EBITDA 300,000. Exit cap 10 percent. Value ≈ 3,000,000.</div>
+      <p><b>LTV on value</b> = Total loans ÷ Value. Shows leverage at exit.</p>
+    </section>
+
+    <section id="taxes">
+      <h2>7. US taxes you may face</h2>
+      <ul>
+        <li><b>Income tax</b>: Federal and state on profits. Not modeled in the calculator.</li>
+        <li><b>Self‑employment/payroll taxes</b>: On wages. We model the employer side via payroll burden percent.</li>
+        <li><b>Property tax</b>: On assessed value of land and buildings. Modeled.</li>
+        <li><b>Sales tax</b>: On meals or retail. Modeled.</li>
+        <li><b>Lodging/Occupancy tax</b>: On room revenue. Modeled.</li>
+      </ul>
+      <div class="callout">Names vary by state and county. “Lodging tax” may be called room tax, transient occupancy tax, hotel tax, accommodations tax, or bed tax.</div>
+    </section>
+
+    <section id="property-tax">
+      <h2>8. Property tax and assessed value</h2>
+      <p><b>Assessed value</b> is the value the county uses for tax. It is not the market price. Some places assess a fraction of market value, then apply a mill rate.</p>
+      <p><b>In the calculator</b>: Assessed = Purchase + Structures + Infrastructure + any custom CapEx you mark as “counts toward assessed”.</p>
+      <p><b>Property tax</b> = Assessed × Property tax percent.</p>
+      <div class="ex"><b>Example</b>: Assessed 2,000,000. Rate 1.25 percent. Tax 25,000 per year.</div>
+      <p><b>Growth</b>: We apply your yearly growth rate to build a 5‑year view.</p>
+    </section>
+
+    <section id="ops-taxes">
+      <h2>9. Lodging, sales, and occupancy taxes</h2>
+      <ul>
+        <li><b>Split the nightly price</b> into lodging and meals parts.</li>
+        <li><b>Lodging tax</b> applies to the lodging part.</li>
+        <li><b>Sales tax</b> applies to the meals part.</li>
+        <li><b>Price includes taxes?</b> If yes, we back taxes out of the price. If no, taxes are added on top for the guest and we show collected amounts.</li>
+      </ul>
+      <div class="ex"><b>Example</b>: PPPN 350. Meals 25 percent. Lodging tax 10 percent. Sales on meals 8.5 percent. If price includes taxes, the calculator solves the before‑tax price so your sticker stays 350.</div>
+    </section>
+
+    <section id="payroll">
+      <h2>10. Payroll, burden, and labor</h2>
+      <table class="tbl">
+        <tr><th>Item</th><th>Plain meaning</th><th>Also called</th><th>How we model it</th></tr>
+        <tr>
+          <td>FTE count</td><td>Full‑time equivalent staff.</td><td>Headcount equivalent</td><td>You enter the number.</td>
+        </tr>
+        <tr>
+          <td>Avg salary</td><td>Average yearly pay per FTE.</td><td>Base pay</td><td>You enter the amount.</td>
+        </tr>
+        <tr>
+          <td>Payroll burden %</td><td>Employer costs on top of salary (payroll taxes, workers comp, benefits).</td><td>On‑cost, labor burden</td><td>We multiply salary by (1 + burden%). You can toggle Auto 14 percent.</td>
+        </tr>
+      </table>
+      <div class="ex"><b>Example</b>: 4 FTE × 45,000 × (1 + 14 percent) ≈ 205,200 per year.</div>
+    </section>
+
+    <section id="ranges">
+      <h2>11. Typical ranges and why they vary</h2>
+      <ul>
+        <li><b>LTV</b>: 60 to 75 percent. Tighter for new operators or unusual properties.</li>
+        <li><b>DSCR</b>: Lenders often want 1.20 to 1.35.</li>
+        <li><b>Debt yield</b>: 8 to 12 percent common. Higher is safer for the bank.</li>
+        <li><b>Amort years</b>: 15 to 25 typical for commercial hospitality.</li>
+        <li><b>Property tax</b>: 0.5 to 2 percent of assessed, local rules vary.</li>
+        <li><b>EBITDA margin</b>: 20 to 40 percent is a healthy target for small lodges.</li>
+      </ul>
+      <p>Numbers shift with location, operator skill, marketing, and build quality.</p>
+    </section>
+
+    <section id="sensitivity">
+      <h2>12. What matters most for cash after debt</h2>
+      <ul>
+        <li><b>Price per person</b> and <b>occupancy</b> move revenue the most.</li>
+        <li><b>Guests per night</b> (design and layout) drives top line without big fixed costs.</li>
+        <li><b>OTA share</b> and <b>fees</b> can eat margin fast.</li>
+        <li><b>Staff total</b> and <b>food costs</b> are big levers.</li>
+        <li><b>Debt terms</b> (rate, years) change payments a lot.</li>
+        <li><b>CapEx scope</b> changes equity needs and future maintenance.</li>
+      </ul>
+      <div class="ex"><b>Rule of thumb</b>: A 10 dollar price change at 10 guests and 60 percent occupancy is ≈ 21,900 more or less revenue per year (10 × 10 × 0.6 × 365).</div>
+    </section>
+
+    <section id="mapping">
+      <h2>13. Mapping terms to the calculator inputs</h2>
+      <table class="tbl">
+        <tr><th>Calculator input</th><th>This represents</th><th>Related finance/tax term</th></tr>
+        <tr><td>Purchase group A/B/None</td><td>Which loan, if any, funds the land/site.</td><td>LTV, LTC</td></tr>
+        <tr><td>Structures group + In loan?</td><td>Which loan funds each building.</td><td>Advance rate</td></tr>
+        <tr><td>Soft costs %</td><td>Design, permits, lender/legal.</td><td>Closing and third‑party costs (separate from loan closing)</td></tr>
+        <tr><td>Property tax % of assessed</td><td>Yearly property tax rate.</td><td>Mill rate, ad valorem tax</td></tr>
+        <tr><td>Exit cap rate %</td><td>Used to estimate sale value.</td><td>Capitalization rate</td></tr>
+        <tr><td>OTA share and fee</td><td>Commission leakage on OTA business.</td><td>Distribution cost</td></tr>
+        <tr><td>Payroll burden %</td><td>Employer on‑costs.</td><td>On‑cost, labor burden</td></tr>
+      </table>
+    </section>
+
+    <section id="glossary">
+      <h2>14. Glossary with synonyms</h2>
+      <table class="tbl">
+        <tr><th>Term</th><th>Layman description</th><th>Also known as</th></tr>
+        <tr><td>Advance rate</td><td>How much of a cost the bank will fund.</td><td>LTV, LTC</td></tr>
+        <tr><td>Balloon</td><td>Big payoff due at the end.</td><td>Balloon maturity</td></tr>
+        <tr><td>Bridge loan</td><td>Short‑term loan to get started or finish construction.</td><td>Interim financing</td></tr>
+        <tr><td>Cap rate</td><td>Rate that turns income into value.</td><td>Capitalization rate</td></tr>
+        <tr><td>Coverage</td><td>How much income covers debt payments.</td><td>DSCR</td></tr>
+        <tr><td>Discount points</td><td>Upfront fee to lower the rate.</td><td>Rate buy‑down</td></tr>
+        <tr><td>Escrow</td><td>Money set aside for taxes/insurance.</td><td>Impound</td></tr>
+        <tr><td>I/O</td><td>You pay only interest for a while.</td><td>Interest‑only</td></tr>
+        <tr><td>NOI</td><td>Profit before loans and non‑cash items.</td><td>Net operating income</td></tr>
+        <tr><td>On‑cost</td><td>Extra employer costs on wages.</td><td>Payroll burden</td></tr>
+        <tr><td>Origination</td><td>Lender's fee to make the loan.</td><td>Points</td></tr>
+        <tr><td>Step‑down</td><td>Prepay fee that gets smaller over time.</td><td>Declining prepay</td></tr>
+        <tr><td>Yield maintenance</td><td>Prepay fee so lender keeps their yield.</td><td>YM</td></tr>
+      </table>
+    </section>
+
+    <footer>
+      This deep dive is a plain‑English guide. For legal or tax decisions, ask a qualified pro in your state.
+    </footer>
+  </main>
+</body>
+</html>
