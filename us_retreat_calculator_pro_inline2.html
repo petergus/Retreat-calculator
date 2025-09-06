@@ -1,0 +1,1193 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>US Retreat &amp; Eco‑Lodge Calculator — Pro Inline</title>
+<style>
+    :root{ --bg:#f6f7fb; --card:#ffffff; --ink:#111; --muted:#555; --line:#e5e7ef; --accent:#2563eb; --accent-ink:#fff; --warn:#b45309; --ok:#15803d; }
+    *{box-sizing:border-box}
+    body{margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; color:var(--ink); background:var(--bg);}
+    header{position:sticky; top:0; z-index:10; background:#fff; border-bottom:1px solid var(--line); padding:14px 16px;}
+    header h1{margin:0; font-size:20px}
+    header p{margin:2px 0 0; color:var(--muted); font-size:13px}
+    main{max-width:1350px; margin:16px auto; padding:0 16px 40px}
+    .grid{display:grid; gap:16px; grid-template-columns: repeat(12, 1fr);}
+    .card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px;}
+    .span-3{grid-column: span 3} .span-4{grid-column: span 4} .span-5{grid-column: span 5} .span-6{grid-column: span 6} .span-8{grid-column: span 8} .span-12{grid-column: span 12}
+    h2{font-size:16px; margin:0 0 10px}
+    h3{font-size:13px; margin:14px 0 6px; color:var(--muted);}
+    label{display:block; font-size:12px; color:var(--muted); margin:10px 0 6px}
+    input, select{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#fff; font-size:14px; color:var(--ink);}
+    input[type="checkbox"]{width:auto}
+    .row{display:flex; gap:10px} .row > div{flex:1}
+    .toolbar{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px}
+    button{padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:#fff; cursor:pointer; font-size:14px}
+    button.primary{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
+    table{width:100%; border-collapse:collapse; font-size:14px}
+    th, td{text-align:right; padding:10px; border-bottom:1px solid var(--line)}
+    th:first-child, td:first-child{text-align:left}
+    tfoot td{font-weight:600}
+    .pill{display:inline-block; padding:2px 8px; border:1px solid var(--line); border-radius:999px; font-size:12px; color:var(--muted); background:#fff}
+    .small{font-size:12px; color:var(--muted)} .help{cursor:help; border-bottom:1px dotted var(--muted)}
+    .warn{color:var(--warn)} .ok{color:var(--ok)} .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+    .table-scroll{max-height:260px; overflow:auto; border:1px solid var(--line); border-radius:10px}
+    .del{color:#991b1b; cursor:pointer; font-size:13px}
+    .right{margin-left:auto}
+    .error{background:#fef2f2; color:#991b1b; border:1px solid #fecaca; padding:10px 12px; border-radius:10px; margin-bottom:10px; display:none; white-space:pre-wrap}
+    @media (max-width: 1100px){ .span-3,.span-4,.span-5,.span-6,.span-8{grid-column: span 12} }
+    @media print{ header, .toolbar, .table-scroll{display:none !important} main{margin:0; padding:0} .card{border:none; padding:8px} }
+  </style>
+</head>
+<body>
+<header>
+<h1>US Retreat &amp; Eco‑Lodge Calculator — Pro Inline</h1>
+<p>Everything in one file. If anything breaks, a red banner will show the error.</p>
+</header>
+<main>
+<div class="grid">
+<div class="card span-12">
+<div class="error" id="err"></div>
+</div>
+<!-- PROJECT & ASSETS -->
+<div class="card span-5">
+<div class="toolbar">
+<h2 style="margin:0">Project</h2>
+<button class="right" id="printPdf">Print / PDF</button>
+</div>
+<div class="row">
+<div>
+<label>Land or existing property purchase, USD
+              <input id="purchase" min="0" step="1000" type="number" value="650000"/>
+</label>
+</div>
+<div>
+<label>Assign purchase to loan group <span class="help" title="Which lender finances the land. Choose None to pay cash for land.">?</span>
+<select id="purchase_group">
+<option selected="" value="A">Group A</option>
+<option value="B">Group B</option>
+<option value="none">None</option>
+</select>
+</label>
+</div>
+</div>
+<div class="row">
+<div>
+<label>Soft costs %, permits, design <span class="help" title="Percent of purchase + structures for architect, permits, engineering, surveys, legal, lender fees.">?</span>
+<input id="soft_pct" min="0" step="0.5" type="number" value="8"/>
+</label>
+</div>
+<div>
+<label>Infrastructure, site works, utilities, USD <span class="help" title="Grading, septic, well, power runs, roads, parking, landscaping.">?</span>
+<input id="infra" min="0" step="1000" type="number" value="220000"/>
+</label>
+</div>
+</div>
+<h3>Structures and site items</h3>
+<div class="small">Add cabins, tents, spa buildings. Choose a loan group and toggle whether it's financed.</div>
+<div class="toolbar">
+<button class="primary" id="addAsset">Add structure</button>
+<button id="resetAssets">Reset structures</button>
+</div>
+<div class="table-scroll">
+<table id="assets">
+<thead>
+<tr>
+<th style="min-width:130px">Type</th>
+<th>Qty</th>
+<th>Unit cost</th>
+<th>Group</th>
+<th>In loan?</th>
+<th>Line total</th>
+<th></th>
+</tr>
+</thead>
+<tbody></tbody>
+<tfoot>
+<tr>
+<td colspan="5">Structures total</td>
+<td class="mono" id="structures_total">0</td>
+<td></td>
+</tr>
+</tfoot>
+</table>
+</div>
+<h3>Custom CapEx (non-structure)</h3>
+<div class="small">Add additional capital items like large equipment or site art. You can choose if they affect assessed value.</div>
+<div class="toolbar">
+<button class="primary" id="addCapex">Add CapEx item</button>
+<button id="resetCapex">Reset CapEx</button>
+</div>
+<div class="table-scroll">
+<table id="capex">
+<thead>
+<tr>
+<th style="min-width:130px">Description</th>
+<th>Amount</th>
+<th>Group</th>
+<th>In loan?</th>
+<th>Counts toward assessed?</th>
+<th></th>
+</tr>
+</thead>
+<tbody></tbody>
+<tfoot>
+<tr>
+<td colspan="4">Custom CapEx total</td>
+<td class="mono" colspan="2" id="capex_total">0</td>
+</tr>
+</tfoot>
+</table>
+</div>
+<h3>Contingency &amp; reserves</h3>
+<div class="row">
+<div>
+<label>Contingency % on structures <span class="help" title="Build contingency applied to structures only.">?</span>
+<input id="cont_pct" min="0" step="0.5" type="number" value="10"/>
+</label>
+</div>
+<div>
+<label>Replacement reserve % of structures <span class="help" title="Annual reserve set aside for future refurbishments and replacements.">?</span>
+<input id="reserve_pct" min="0" step="0.1" type="number" value="1.0"/>
+</label>
+</div>
+</div>
+</div>
+<!-- FINANCE GROUPS -->
+<div class="card span-3">
+<h2>Finance — Group A</h2>
+<div class="row">
+<div>
+<label>LTV % (A) <span class="help" title="Loan-to-Value for items assigned to A.">?</span>
+<input id="ltvA" max="95" min="0" step="1" type="number" value="70"/>
+</label>
+</div>
+<div>
+<label>Rate % (A) <span class="help" title="Annual interest rate for Loan A.">?</span>
+<input id="rateA" min="0" step="0.1" type="number" value="6.8"/>
+</label>
+</div>
+</div><div class="row"><div><label>Maintenance % of structures per year <span class="help" title="Annual maintenance spend as a percent of structures (repairs, small replacements).">?</span><input id="maint_pct" min="0" step="0.1" type="number" value="1.5"/></label></div></div>
+<div class="row">
+<div>
+<label>Amort years (A) <span class="help" title="Amortization period in years for Loan A.">?</span>
+<input id="yearsA" min="1" step="1" type="number" value="20"/>
+</label>
+</div>
+<div>
+<label>Closing costs, USD (A) <span class="help" title="Upfront costs paid in cash at closing for Loan A.">?</span>
+<input id="closeA" min="0" step="500" type="number" value="8000"/>
+</label>
+</div>
+</div>
+<h2 style="margin-top:14px">Finance — Group B</h2>
+<div class="row">
+<div>
+<label>LTV % (B)
+              <input id="ltvB" max="95" min="0" step="1" type="number" value="65"/>
+</label>
+</div>
+<div>
+<label>Rate % (B)
+              <input id="rateB" min="0" step="0.1" type="number" value="7.5"/>
+</label>
+</div>
+</div>
+<div class="row">
+<div>
+<label>Amort years (B)
+              <input id="yearsB" min="1" step="1" type="number" value="15"/>
+</label>
+</div>
+<div>
+<label>Closing costs, USD (B)
+              <input id="closeB" min="0" step="500" type="number" value="7000"/>
+</label>
+</div>
+</div>
+<h3>Taxes &amp; insurance</h3>
+<div class="row">
+<div>
+<label>Property tax % of assessed
+              <input id="prop_tax_pct" min="0" step="0.1" type="number" value="1.2"/>
+</label>
+</div>
+<div>
+<label>Annual insurance, USD
+              <input id="insurance" min="0" step="500" type="number" value="9000"/>
+</label>
+</div>
+</div>
+<div class="row">
+<div>
+<label>Prop tax growth %/yr <span class="help" title="Expected annual increase in property tax.">?</span>
+<input id="prop_tax_g" min="0" step="0.5" type="number" value="3"/>
+</label>
+</div>
+<div>
+<label>Insurance growth %/yr <span class="help" title="Expected annual increase in insurance.">?</span>
+<input id="ins_g" min="0" step="0.5" type="number" value="6"/>
+</label>
+</div>
+</div>
+<h3>Valuation</h3>
+<label>Exit cap rate % <span class="help" title="Value = EBITDA ÷ cap rate. Ignores financing.">?</span>
+<input id="cap_rate_input" min="1" step="0.1" type="number" value="9.0"/>
+</label>
+</div>
+<!-- OPERATIONS & REVENUE -->
+<div class="card span-4">
+<h2>Operations &amp; Revenue</h2>
+<div class="row">
+<div>
+<label>Use seasonality?
+              <select id="use_season">
+<option selected="" value="no">No</option>
+<option value="yes">Yes</option>
+</select>
+</label>
+</div>
+<div>
+<label>Avg guests per night
+              <input id="guests" min="0" step="1" type="number" value="10"/>
+</label>
+</div>
+</div>
+<div id="simpleBlock">
+<div class="row">
+<div>
+<label>Nights listed per year
+                <input id="nights" max="365" min="0" step="5" type="number" value="365"/>
+</label>
+</div>
+<div>
+<label>Occupancy %
+                <input id="occ_pct" max="100" min="0" step="1" type="number" value="55"/>
+</label>
+</div>
+</div>
+<div class="row">
+<div>
+<label>Price per person per night, USD <span class="help" title="Per person, per night. Usually includes meals. Couples pay double.">?</span>
+<input id="pppn" min="0" step="5" type="number" value="375"/>
+</label>
+</div>
+<div>
+<label>Weekend premium % <span class="help" title="Average price uplift on weekend nights.">?</span>
+<input id="wknd_prem" min="0" step="1" type="number" value="15"/>
+</label>
+</div>
+</div>
+<div class="row">
+<div>
+<label>Weekend share % of nights <span class="help" title="Share of weekend nights in your calendar. US average is ~28–29%.">?</span>
+<input id="wknd_share" max="100" min="0" step="0.1" type="number" value="28.6"/>
+</label>
+</div>
+<div>
+<label>Price includes taxes?
+                <select id="price_includes_tax">
+<option selected="" value="no">No</option>
+<option value="yes">Yes</option>
+</select>
+</label>
+</div>
+</div>
+</div>
+<div id="seasonBlock" style="display:none">
+<div class="small" style="margin-bottom:8px">Enter per-month nights, occupancy, and base price per person per night.</div>
+<div class="table-scroll">
+<table id="season">
+<thead>
+<tr><th>Month</th><th>Nights</th><th>Occ %</th><th>Price pppn</th></tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+<div class="row">
+<div>
+<label>Weekend premium %
+                <input id="wknd_prem_s" min="0" step="1" type="number" value="15"/>
+</label>
+</div>
+<div>
+<label>Weekend share %
+                <input id="wknd_share_s" max="100" min="0" step="0.1" type="number" value="28.6"/>
+</label>
+</div>
+</div>
+</div>
+<h3>Tax split</h3>
+<div class="row">
+<div>
+<label>Meals portion of price % <span class="help" title="Share of nightly price that represents food and beverage value.">?</span>
+<input id="meals_pct" max="100" min="0" step="1" type="number" value="25"/>
+</label>
+</div>
+<div>
+<label>Lodging tax % <span class="help" title="Room/occupancy tax on lodging revenue.">?</span>
+<input id="lodging_tax_pct" min="0" step="0.5" type="number" value="10"/>
+</label>
+</div>
+</div>
+<div class="row">
+<div>
+<label>Sales tax on meals % <span class="help" title="Sales tax rate applied to the meals portion.">?</span>
+<input id="sales_tax_meals" min="0" step="0.1" type="number" value="8.5"/>
+</label>
+</div>
+<div>
+<label>Price includes taxes?
+              <select id="price_includes_tax2">
+<option selected="" value="no">No</option>
+<option value="yes">Yes</option>
+</select>
+</label>
+</div>
+</div>
+<h3>Channels &amp; fees</h3>
+<div class="row">
+<div>
+<label>Share via OTA % <span class="help" title="Percent of bookings that come through an Online Travel Agency like Airbnb or Booking.">?</span>
+<input id="ota_share" max="100" min="0" step="1" type="number" value="45"/>
+</label>
+</div>
+<div>
+<label>OTA fee % <span class="help" title="Commission on lodging portion only.">?</span>
+<input id="ota_fee" min="0" step="0.5" type="number" value="15"/>
+</label>
+</div>
+</div>
+<div class="row">
+<div>
+<label>Card processing fee % <span class="help" title="Blended payment processing fee. Applies to total customer charge for direct bookings.">?</span>
+<input id="card_fee" min="0" step="0.1" type="number" value="2.9"/>
+</label>
+</div>
+<div>
+<label>Direct booking platform % <span class="help" title="If you use a direct engine that charges a fee, add it here.">?</span>
+<input id="direct_fee" min="0" step="0.1" type="number" value="1.0"/>
+</label>
+</div>
+</div>
+<h3>Variable &amp; fixed costs</h3>
+<div class="row">
+<div>
+<label>Food cost per guest-night
+              <input id="food_pppn" min="0" step="1" type="number" value="30"/>
+</label>
+</div>
+<div>
+<label>Other variable cost per guest-night
+              <input id="var_pppn" min="0" step="1" type="number" value="18"/>
+</label>
+</div>
+</div>
+<div class="row">
+<div>
+<label># of FTE staff
+              <input id="fte" min="0" step="0.5" type="number" value="4"/>
+</label>
+</div>
+<div>
+<label>Avg salary per FTE, USD
+              <input id="salary" min="0" step="1000" type="number" value="45000"/>
+</label>
+</div>
+</div>
+<div class="row">
+<div>
+<label>Payroll burden % <span class="help" title="Payroll taxes, benefits, workers comp.">?</span>
+<input id="burden_pct" min="0" step="0.5" type="number" value="14"/>
+</label>
+</div>
+<div>
+<label>Utilities, USD
+              <input id="utilities" min="0" step="500" type="number" value="20000"/>
+</label>
+</div>
+</div>
+<div class="row">
+<div>
+<label>Marketing, USD
+              <input id="marketing" min="0" step="500" type="number" value="14000"/>
+</label>
+</div>
+<div>
+<label>HOA, licenses, misc, USD
+              <input id="misc" min="0" step="500" type="number" value="10000"/>
+</label>
+</div>
+</div>
+<div class="row">
+<div>
+<label>Housekeeping, laundry, USD
+              <input id="housekeeping" min="0" step="500" type="number" value="18000"/>
+</label>
+</div>
+<div>
+<label>Other fixed annual expenses <span class="help" title="Add any annual fixed costs not covered above.">?</span>
+<button id="addFix" type="button">Add</button>
+</label>
+</div>
+</div>
+<div class="table-scroll">
+<table id="fixes">
+<thead><tr><th style="min-width:130px">Description</th><th>Amount</th><th></th></tr></thead>
+<tbody></tbody>
+<tfoot><tr><td>Total other fixed</td><td class="mono" id="fixes_total">0</td><td></td></tr></tfoot>
+</table>
+</div>
+<h3>Extra revenue streams</h3>
+<div class="row">
+<div>
+<label>Spa revenue per guest-night <span class="help" title="Average spa or treatment spend per guest per night.">?</span>
+<input id="spa_pppn" min="0" step="1" type="number" value="20"/>
+</label>
+</div>
+<div>
+<label>Spa gross margin % <span class="help" title="Percent of spa revenue that remains after therapist pay and supplies.">?</span>
+<input id="spa_margin" max="100" min="0" step="1" type="number" value="55"/>
+</label>
+</div>
+</div>
+<div class="row">
+<div>
+<label>Workshops revenue per guest-night
+              <input id="work_pppn" min="0" step="1" type="number" value="10"/>
+</label>
+</div>
+<div>
+<label>Workshops margin %
+              <input id="work_margin" max="100" min="0" step="1" type="number" value="70"/>
+</label>
+</div>
+</div>
+<div class="row">
+<div>
+<label>Transfers/gear revenue per guest-night
+              <input id="xfer_pppn" min="0" step="1" type="number" value="6"/>
+</label>
+</div>
+<div>
+<label>Transfers/gear margin %
+              <input id="xfer_margin" max="100" min="0" step="1" type="number" value="40"/>
+</label>
+</div>
+</div>
+</div>
+<!-- RESULTS & COMPARE -->
+<div class="card span-8">
+<div class="toolbar">
+<button class="primary" id="saveCsv">Export CSV</button>
+<button id="saveLocal">Save inputs</button>
+<button id="loadLocal">Load inputs</button>
+<button id="resetAll">Reset defaults</button>
+<button id="snapA">Save as Scenario A</button>
+<button id="snapB">Save as Scenario B</button>
+<span class="small muted">Tooltips are marked with a small question mark.</span>
+</div>
+<table id="results">
+<thead><tr><th>Metric</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>Total project cost</td><td id="capex">—</td></tr>
+<tr><td>Financeable base (A)</td><td id="fin_base_a">—</td></tr>
+<tr><td>Financeable base (B)</td><td id="fin_base_b">—</td></tr>
+<tr><td>Loan A principal</td><td id="loanA">—</td></tr>
+<tr><td>Loan B principal</td><td id="loanB">—</td></tr>
+<tr><td>Total loan principal</td><td id="loan_total">—</td></tr>
+<tr><td>Equity needed incl. closing</td><td id="equity">—</td></tr>
+<tr><td>Assessed value for property tax</td><td id="assessed">—</td></tr>
+<tr><td>Property tax (year 1)</td><td id="prop_tax">—</td></tr>
+<tr><td>Guest‑nights</td><td id="guest_nights">—</td></tr>
+<tr><td>Lodging revenue</td><td id="lodging_rev">—</td></tr>
+<tr><td>Meals revenue</td><td id="meals_rev">—</td></tr>
+<tr><td>Other revenue (spa/workshops/transfers)</td><td id="other_rev">—</td></tr>
+<tr><td><b>Gross revenue</b></td><td id="gross_rev">—</td></tr>
+<tr><td>Lodging tax collected</td><td id="lodging_tax">—</td></tr>
+<tr><td>Sales tax on meals</td><td id="sales_tax_meals_out">—</td></tr>
+<tr><td>Revenue net of taxes</td><td id="net_rev">—</td></tr>
+<tr><td>OTA commissions</td><td id="ota_costs">—</td></tr>
+<tr><td>Card + direct platform fees</td><td id="card_costs">—</td></tr>
+<tr><td>Variable costs (food + other)</td><td id="var_costs">—</td></tr>
+<tr><td>Other COGS (spa/workshops/transfers)</td><td id="other_cogs">—</td></tr>
+<tr><td>Maintenance</td><td id="maint">—</td></tr>
+<tr><td>Replacement reserve</td><td id="reserve">—</td></tr>
+<tr><td>Staff total</td><td id="staff_total">—</td></tr>
+<tr><td>Fixed opex (util, mkt, misc, hk, ins, prop tax)</td><td id="fixed_opex">—</td></tr>
+<tr><td><span class="pill">EBITDA</span></td><td id="ebitda">—</td></tr>
+<tr><td>Debt service A</td><td id="debtA">—</td></tr>
+<tr><td>Debt service B</td><td id="debtB">—</td></tr>
+<tr><td>Total debt service</td><td id="debt_total">—</td></tr>
+<tr><td><span class="pill">Cash after debt</span></td><td id="cash_after">—</td></tr>
+<tr><td>DSCR</td><td id="dscr">—</td></tr>
+<tr><td>Debt yield</td><td id="debt_yield">—</td></tr>
+<tr><td>Unlevered cap rate</td><td id="cap_rate">—</td></tr>
+<tr><td>Value from cap rate</td><td id="value_cap">—</td></tr>
+<tr><td>LTV on value</td><td id="ltv_on_value">—</td></tr>
+</tbody>
+</table>
+<h3 style="margin-top:16px">5‑year mini‑projection (tax &amp; insurance growth only)</h3>
+<table id="proj">
+<thead><tr><th>Year</th><th>Property tax</th><th>Insurance</th></tr></thead>
+<tbody></tbody>
+</table>
+</div>
+<div class="card span-4">
+<h2>Scenario Compare</h2>
+<div class="small">Snapshot current inputs as A or B, then tweak and snapshot the other.</div>
+<table id="compare">
+<thead><tr><th>Metric</th><th>A</th><th>B</th><th>Δ B−A</th></tr></thead>
+<tbody>
+<tr><td>Guest‑nights</td><td id="c_guest_a">—</td><td id="c_guest_b">—</td><td id="c_guest_d">—</td></tr>
+<tr><td>Gross revenue</td><td id="c_gross_a">—</td><td id="c_gross_b">—</td><td id="c_gross_d">—</td></tr>
+<tr><td>Net revenue (after taxes)</td><td id="c_net_a">—</td><td id="c_net_b">—</td><td id="c_net_d">—</td></tr>
+<tr><td>EBITDA</td><td id="c_ebitda_a">—</td><td id="c_ebitda_b">—</td><td id="c_ebitda_d">—</td></tr>
+<tr><td>Total debt service</td><td id="c_debt_a">—</td><td id="c_debt_b">—</td><td id="c_debt_d">—</td></tr>
+<tr><td>Cash after debt</td><td id="c_cash_a">—</td><td id="c_cash_b">—</td><td id="c_cash_d">—</td></tr>
+<tr><td>DSCR</td><td id="c_dscr_a">—</td><td id="c_dscr_b">—</td><td id="c_dscr_d">—</td></tr>
+<tr><td>Value (cap)</td><td id="c_val_a">—</td><td id="c_val_b">—</td><td id="c_val_d">—</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+<script>
+(function(){
+  const fmt = new Intl.NumberFormat('en-US', {style:'currency', currency:'USD'});
+  const nf0 = new Intl.NumberFormat('en-US', {maximumFractionDigits:0});
+  const nf2 = new Intl.NumberFormat('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  const $ = id => document.getElementById(id);
+  const errBox = $('err');
+  function showErr(msg){ errBox.style.display='block'; errBox.textContent = msg; }
+  function hideErr(){ errBox.style.display='none'; errBox.textContent = ''; }
+
+  const assetsTbody = document.querySelector('#assets tbody');
+  const capexTbody = document.querySelector('#capex tbody');
+  const fixesTbody = document.querySelector('#fixes tbody');
+
+  const defaultAssets = [
+    {type:'Designer cabin', qty:5, unit:90000, group:'B', inloan:true},
+    {type:'Spa building + sauna', qty:1, unit:160000, group:'B', inloan:true},
+    {type:'Glamping tents', qty:2, unit:20000, group:'B', inloan:false},
+  ];
+  const defaultCapex = [
+    {desc:'Commercial kitchen equipment', amt:45000, group:'B', inloan:true, assessed:true},
+  ];
+  const months = [
+    ['Jan',31],['Feb',28],['Mar',31],['Apr',30],['May',31],['Jun',30],
+    ['Jul',31],['Aug',31],['Sep',30],['Oct',31],['Nov',30],['Dec',31]
+  ];
+
+  function addAssetRow(item){
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="text-align:left"><input value="${item.type||''}" data-k="type"></td>
+      <td><input type="number" min="0" step="1" value="${item.qty||0}" data-k="qty"></td>
+      <td><input type="number" min="0" step="100" value="${item.unit||0}" data-k="unit"></td>
+      <td>
+        <select data-k="group">
+          <option value="A" ${item.group==='A'?'selected':''}>A</option>
+          <option value="B" ${item.group==='B'?'selected':''}>B</option>
+          <option value="none" ${item.group==='none'?'selected':''}>None</option>
+        </select>
+      </td>
+      <td><input type="checkbox" ${item.inloan?'checked':''} data-k="inloan"></td>
+      <td class="mono lineTotal">$0</td>
+      <td><span class="del">remove</span></td>
+    `;
+    assetsTbody.appendChild(tr);
+    tr.querySelectorAll('input,select').forEach(i=> i.addEventListener('input', ()=>render(compute())));
+    tr.querySelector('.del').addEventListener('click', ()=>{ tr.remove(); render(compute()); });
+  }
+
+  function addCapexRow(item){
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="text-align:left"><input value="${item.desc||''}" data-k="desc"></td>
+      <td><input type="number" min="0" step="100" value="${item.amt||0}" data-k="amt"></td>
+      <td>
+        <select data-k="group">
+          <option value="A" ${item.group==='A'?'selected':''}>A</option>
+          <option value="B" ${item.group==='B'?'selected':''}>B</option>
+          <option value="none" ${item.group==='none'?'selected':''}>None</option>
+        </select>
+      </td>
+      <td><input type="checkbox" ${item.inloan?'checked':''} data-k="inloan"></td>
+      <td><input type="checkbox" ${item.assessed?'checked':''} data-k="assessed"></td>
+      <td><span class="del">remove</span></td>
+    `;
+    capexTbody.appendChild(tr);
+    tr.querySelectorAll('input,select').forEach(i=> i.addEventListener('input', ()=>render(compute())));
+    tr.querySelector('.del').addEventListener('click', ()=>{ tr.remove(); render(compute()); });
+  }
+
+  function addFixRow(item){
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="text-align:left"><input value="${item.desc||''}" data-k="desc"></td>
+      <td><input type="number" min="0" step="100" value="${item.amt||0}" data-k="amt"></td>
+      <td><span class="del">remove</span></td>
+    `;
+    fixesTbody.appendChild(tr);
+    tr.querySelectorAll('input').forEach(i=> i.addEventListener('input', ()=>render(compute())));
+    tr.querySelector('.del').addEventListener('click', ()=>{ tr.remove(); render(compute()); });
+  }
+
+  function serializeAssets(){
+    return [...assetsTbody.querySelectorAll('tr')].map(tr => {
+      const obj = {};
+      tr.querySelectorAll('input,select').forEach(i=>{
+        const k = i.dataset.k;
+        obj[k] = i.type === 'checkbox' ? i.checked : (i.tagName==='SELECT'? i.value : Number(i.value||0));
+      });
+      return obj;
+    });
+  }
+  function serializeCapex(){
+    return [...capexTbody.querySelectorAll('tr')].map(tr => {
+      const obj = {};
+      tr.querySelectorAll('input,select').forEach(i=>{
+        const k = i.dataset.k;
+        if(i.type === 'checkbox') obj[k] = i.checked;
+        else if(i.tagName==='SELECT') obj[k] = i.value;
+        else obj[k] = Number(i.value||0);
+      });
+      return obj;
+    });
+  }
+  function serializeFixes(){
+    return [...fixesTbody.querySelectorAll('tr')].map(tr => {
+      return {desc: tr.querySelector('input[data-k="desc"]').value, amt: Number(tr.querySelector('input[data-k="amt"]').value||0)};
+    });
+  }
+
+  function sumStructures(){
+    let total = 0;
+    let baseA = 0, baseB = 0;
+    [...assetsTbody.querySelectorAll('tr')].forEach(tr=>{
+      const qty = Number(tr.querySelector('input[data-k="qty"]').value||0);
+      const unit = Number(tr.querySelector('input[data-k="unit"]').value||0);
+      const group = tr.querySelector('select[data-k="group"]').value;
+      const inloan = tr.querySelector('input[data-k="inloan"]').checked;
+      const line = qty * unit;
+      tr.querySelector('.lineTotal').textContent = fmt.format(line);
+      total += line;
+      if(inloan){
+        if(group==='A') baseA += line;
+        if(group==='B') baseB += line;
+      }
+    });
+    if ($('structures_total')) $('structures_total').textContent = fmt.format(total);
+    return {total, baseA, baseB};
+  }
+
+  function sumCapex(){
+    let total = 0, baseA = 0, baseB = 0, assessed = 0;
+    serializeCapex().forEach(r => {
+      total += r.amt;
+      if(r.inloan){
+        if(r.group==='A') baseA += r.amt;
+        if(r.group==='B') baseB += r.amt;
+      }
+      if(r.assessed) assessed += r.amt;
+    });
+    if ($('capex_total')) $('capex_total').textContent = fmt.format(total);
+    return {total, baseA, baseB, assessed};
+  }
+
+  function sumFixes(){
+    let total = 0;
+    serializeFixes().forEach(r => total += r.amt);
+    if ($('fixes_total')) $('fixes_total').textContent = fmt.format(total);
+    return total;
+  }
+
+  function annualDebtService(P, r, nYears){
+    if(P<=0 || r<=0 || nYears<=0) return 0;
+    const i = r/100;
+    const N = nYears;
+    return P * (i) / (1 - Math.pow(1+i, -N));
+  }
+
+  function monthRows(){
+    const tbody = document.querySelector('#season tbody');
+    if(tbody.children.length) return; // already built
+    months.forEach(([m,days])=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${m}</td>
+        <td><input type="number" value="${days}" min="0" max="${days}" data-k="nights"></td>
+        <td><input type="number" value="55" min="0" max="100" step="1" data-k="occ"></td>
+        <td><input type="number" value="375" min="0" step="1" data-k="pppn"></td>`;
+      tbody.appendChild(tr);
+      tr.querySelectorAll('input').forEach(inp => inp.addEventListener('input', ()=>render(compute())));
+    });
+  }
+
+  function readSeason(){
+    const rows = [...document.querySelectorAll('#season tbody tr')];
+    return rows.map(tr => {
+      const tds = tr.querySelectorAll('td');
+      return {
+        nights: Number(tds[1].querySelector('input').value||0),
+        occ: Number(tds[2].querySelector('input').value||0)/100,
+        pppn: Number(tds[3].querySelector('input').value||0),
+      };
+    });
+  }
+
+  function computeRevenue(guestNights, pppn, meals_pct, lodging_tax_pct, sales_tax_meals, includesTax){
+    let lodging_pppn, meals_pppn, lodgingTaxPer, salesTaxMealsPer;
+    if(includesTax){
+      const lodgingPortion = (1 - meals_pct);
+      const mealsPortion = meals_pct;
+      const denom = lodgingPortion*(1+lodging_tax_pct) + mealsPortion*(1+sales_tax_meals);
+      const base = pppn / denom;
+      lodging_pppn = base * lodgingPortion;
+      meals_pppn = base * mealsPortion;
+      lodgingTaxPer = lodging_pppn * lodging_tax_pct;
+      salesTaxMealsPer = meals_pppn * sales_tax_meals;
+    } else {
+      lodging_pppn = pppn * (1 - meals_pct);
+      meals_pppn = pppn * meals_pct;
+      lodgingTaxPer = lodging_pppn * lodging_tax_pct;
+      salesTaxMealsPer = meals_pppn * sales_tax_meals;
+    }
+    return {
+      lodgingRevenue: lodging_pppn * guestNights,
+      mealsRevenue: meals_pppn * guestNights,
+      lodgingTax: lodgingTaxPer * guestNights,
+      salesTaxMeals: salesTaxMealsPer * guestNights
+    };
+  }
+
+  function compute(){
+    try{
+      const purchase = +$('purchase').value||0;
+      const purchaseGroup = $('purchase_group').value;
+      const soft_pct = (+$('soft_pct').value||0)/100;
+      const cont_pct = (+$('cont_pct').value||0)/100;
+      const reserve_pct = (+$('reserve_pct').value||0)/100;
+      const infra = +$('infra').value||0;
+
+      const {total: structuresTotal, baseA: baseAssetsA, baseB: baseAssetsB} = sumStructures();
+      const {total: capexExtra, baseA: baseCapA, baseB: baseCapB, assessed: assessedExtra} = sumCapex();
+
+      const softCosts = (structuresTotal + purchase) * soft_pct;
+      const contingency = structuresTotal * cont_pct;
+      const capex = purchase + structuresTotal + softCosts + contingency + infra + capexExtra;
+
+      // Financeable per group
+      let finBaseA = baseAssetsA + baseCapA;
+      let finBaseB = baseAssetsB + baseCapB;
+      if(purchaseGroup==='A') finBaseA += purchase;
+      if(purchaseGroup==='B') finBaseB += purchase;
+
+      const ltvA = (+$('ltvA').value||0)/100;
+      const ltvB = (+$('ltvB').value||0)/100;
+      const loanA = Math.max(0, finBaseA * ltvA);
+      const loanB = Math.max(0, finBaseB * ltvB);
+      const loanTotal = loanA + loanB;
+
+      const equity = Math.max(0, capex - loanTotal + ((+$('closeA').value||0)+(+$('closeB').value||0)));
+
+      // Assessed value
+      const assessed = purchase + structuresTotal + infra + assessedExtra;
+      const prop_tax = assessed * ((+$('prop_tax_pct').value||0)/100);
+      const insurance = +$('insurance').value||0;
+
+      // Ops & seasonality
+      const guests = +$('guests').value||0;
+      const useSeason = $('use_season').value === 'yes';
+
+      const meals_pct = (+$('meals_pct').value||0)/100;
+      const lodging_tax_pct = (+$('lodging_tax_pct').value||0)/100;
+      const sales_tax_meals = (+$('sales_tax_meals').value||0)/100;
+      const includesTax = ( $('price_includes_tax').value === 'yes' ) || ( $('price_includes_tax2').value === 'yes' );
+
+      let guestNights=0, lodgingRevenue=0, mealsRevenue=0, lodgingTax=0, salesTaxMealsTotal=0;
+
+      if(!useSeason){
+        const nights = +$('nights').value||0;
+        const occ = (+$('occ_pct').value||0)/100;
+        const pppn = +$('pppn').value||0;
+        const wknd_prem = (+$('wknd_prem').value||0)/100;
+        const wknd_share = (+$('wknd_share').value||0)/100;
+        const adj_pppn = pppn * (1 + wknd_share * wknd_prem);
+        guestNights = nights * occ * guests;
+        const rev = computeRevenue(guestNights, adj_pppn, meals_pct, lodging_tax_pct, sales_tax_meals, includesTax);
+        lodgingRevenue = rev.lodgingRevenue;
+        mealsRevenue = rev.mealsRevenue;
+        lodgingTax = rev.lodgingTax;
+        salesTaxMealsTotal = rev.salesTaxMeals;
+      } else {
+        const rows = readSeason();
+        const wknd_prem = (+$('wknd_prem_s').value||0)/100;
+        const wknd_share = (+$('wknd_share_s').value||0)/100;
+        rows.forEach(r => {
+          const adj_pppn = r.pppn * (1 + wknd_share * wknd_prem);
+          const gn = r.nights * r.occ * guests;
+          guestNights += gn;
+          const rev = computeRevenue(gn, adj_pppn, meals_pct, lodging_tax_pct, sales_tax_meals, includesTax);
+          lodgingRevenue += rev.lodgingRevenue;
+          mealsRevenue += rev.mealsRevenue;
+          lodgingTax += rev.lodgingTax;
+          salesTaxMealsTotal += rev.salesTaxMeals;
+        });
+      }
+
+      const otherSpa = (+$('spa_pppn').value||0) * guestNights;
+      const otherWork = (+$('work_pppn').value||0) * guestNights;
+      const otherXfer = (+$('xfer_pppn').value||0) * guestNights;
+      const otherRevenue = otherSpa + otherWork + otherXfer;
+
+      const grossRevenue = lodgingRevenue + mealsRevenue + otherRevenue;
+
+      // Net revenue before fees and costs (taxes are pass-through)
+      const netRev = grossRevenue;
+
+      // OTA & payment fees
+      const ota_share = (+$('ota_share').value||0)/100;
+      const direct_share = 1 - ota_share;
+      const ota_fee = (+$('ota_fee').value||0)/100;
+      const card_fee = (+$('card_fee').value||0)/100;
+      const direct_fee = (+$('direct_fee').value||0)/100;
+
+      const otaCosts = lodgingRevenue * ota_share * ota_fee;
+      const customerTotalDirect = (grossRevenue + lodgingTax + salesTaxMealsTotal) * direct_share;
+      const cardCosts = customerTotalDirect * (card_fee + direct_fee);
+
+      // Variable costs
+      const food_pppn = +$('food_pppn').value||0;
+      const var_pppn = +$('var_pppn').value||0;
+      const variableCosts = guestNights * (food_pppn + var_pppn);
+
+      // Other COGS from margins
+      const spa_margin = (+$('spa_margin').value||0)/100;
+      const work_margin = (+$('work_margin').value||0)/100;
+      const xfer_margin = (+$('xfer_margin').value||0)/100;
+      const otherCogs = (1 - spa_margin) * otherSpa + (1 - work_margin) * otherWork + (1 - xfer_margin) * otherXfer;
+
+      // Maintenance & reserve
+      const maint = structuresTotal * ((+$('maint_pct').value||0)/100);
+      const reserve = structuresTotal * reserve_pct;
+
+      // Staff & fixed opex
+      const fte = +$('fte').value||0;
+      const salary = +$('salary').value||0;
+      const burden = ((+$('burden_pct').value||0)/100);
+      const staffTotal = fte * salary * (1 + burden);
+
+      const utilities = +$('utilities').value||0;
+      const marketing = +$('marketing').value||0;
+      const misc = +$('misc').value||0;
+      const housekeeping = +$('housekeeping').value||0;
+      const fixesOther = sumFixes();
+
+      const fixedOpex = utilities + marketing + misc + housekeeping + insurance + prop_tax + maint + reserve + fixesOther;
+
+      // EBITDA
+      const ebitda = netRev - (otaCosts + cardCosts) - variableCosts - otherCogs - staffTotal - fixedOpex;
+
+      // Debt service per group
+      const debtA = annualDebtService(loanA, +$('rateA').value||0, +$('yearsA').value||0);
+      const debtB = annualDebtService(loanB, +$('rateB').value||0, +$('yearsB').value||0);
+      const debtTotal = debtA + debtB;
+
+      const cashAfter = ebitda - debtTotal;
+
+      // Metrics
+      const dscr = debtTotal>0 ? ebitda / debtTotal : 0;
+      const debtYield = loanTotal>0 ? ebitda / loanTotal : 0;
+      const capRate = capex>0 ? ebitda / capex : 0;
+      const exitCap = (+$('cap_rate_input').value||0)/100;
+      const valueCap = exitCap>0 ? ebitda / exitCap : 0;
+      const ltvOnValue = valueCap>0 ? loanTotal / valueCap : 0;
+
+      // 5-year mini-projection for property tax and insurance
+      const prop_g = (+$('prop_tax_g').value||0)/100;
+      const ins_g  = (+$('ins_g').value||0)/100;
+      const years = [1,2,3,4,5];
+      const proj = years.map(y => ({
+        y,
+        prop: prop_tax * Math.pow(1+prop_g, y-1),
+        ins:  insurance * Math.pow(1+ins_g, y-1)
+      }));
+
+      hideErr();
+      return {
+        capex, finBaseA, finBaseB, loanA, loanB, loanTotal, equity, assessed, prop_tax, insurance,
+        guestNights, lodgingRevenue, mealsRevenue, otherRevenue, grossRevenue,
+        lodgingTax, salesTaxMealsTotal, netRev,
+        otaCosts, cardCosts, variableCosts, otherCogs, maint, reserve, staffTotal, fixedOpex,
+        ebitda, debtA, debtB, debtTotal, cashAfter,
+        dscr, debtYield, capRate, valueCap, ltvOnValue,
+        proj
+      };
+    } catch(e){
+      showErr('Calculation error: ' + e.message);
+      throw e;
+    }
+  }
+
+  function render(res){
+    try{
+      $('capex').textContent = fmt.format(res.capex);
+      $('fin_base_a').textContent = fmt.format(res.finBaseA);
+      $('fin_base_b').textContent = fmt.format(res.finBaseB);
+      $('loanA').textContent = fmt.format(res.loanA);
+      $('loanB').textContent = fmt.format(res.loanB);
+      $('loan_total').textContent = fmt.format(res.loanTotal);
+      $('equity').textContent = fmt.format(res.equity);
+      $('assessed').textContent = fmt.format(res.assessed);
+      $('prop_tax').textContent = fmt.format(res.prop_tax);
+      $('guest_nights').textContent = nf0.format(Math.round(res.guestNights));
+      $('lodging_rev').textContent = fmt.format(res.lodgingRevenue);
+      $('meals_rev').textContent = fmt.format(res.mealsRevenue);
+      $('other_rev').textContent = fmt.format(res.otherRevenue);
+      $('gross_rev').textContent = fmt.format(res.grossRevenue);
+      $('lodging_tax').textContent = fmt.format(res.lodgingTax);
+      $('sales_tax_meals_out').textContent = fmt.format(res.salesTaxMealsTotal);
+      $('net_rev').textContent = fmt.format(res.netRev);
+      $('ota_costs').textContent = fmt.format(res.otaCosts);
+      $('card_costs').textContent = fmt.format(res.cardCosts);
+      $('var_costs').textContent = fmt.format(res.variableCosts);
+      $('other_cogs').textContent = fmt.format(res.otherCogs);
+      $('maint').textContent = fmt.format(res.maint);
+      $('reserve').textContent = fmt.format(res.reserve);
+      $('staff_total').textContent = fmt.format(res.staffTotal);
+      $('fixed_opex').textContent = fmt.format(res.fixedOpex);
+      $('ebitda').textContent = fmt.format(res.ebitda);
+      $('debtA').textContent = fmt.format(res.debtA);
+      $('debtB').textContent = fmt.format(res.debtB);
+      $('debt_total').textContent = fmt.format(res.debtTotal);
+      $('cash_after').textContent = fmt.format(res.cashAfter);
+      $('dscr').textContent = res.debtTotal>0 ? nf2.format(res.dscr) : '—';
+      $('debt_yield').textContent = nf2.format(res.debtYield*100) + '%';
+      $('cap_rate').textContent = nf2.format(res.capRate*100) + '%';
+      $('value_cap').textContent = fmt.format(res.valueCap);
+      $('ltv_on_value').textContent = nf2.format(res.ltvOnValue*100) + '%';
+
+      // Projection table
+      const tbody = document.querySelector('#proj tbody');
+      tbody.innerHTML = '';
+      res.proj.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>Year ${r.y}</td><td style="text-align:right">${fmt.format(r.prop)}</td><td style="text-align:right">${fmt.format(r.ins)}</td>`;
+        tbody.appendChild(tr);
+      });
+
+      const cashCell = $('cash_after');
+      cashCell.classList.remove('ok','warn');
+      if(res.cashAfter > 0) cashCell.classList.add('ok'); else cashCell.classList.add('warn');
+      hideErr();
+    } catch(e){
+      showErr('Render error: ' + e.message);
+      throw e;
+    }
+  }
+
+  // Scenario snapshots A/B
+  let snapA = null, snapB = null;
+
+  function readInputs(){
+    const ids = [
+      'purchase','purchase_group','soft_pct','infra','cont_pct','reserve_pct','maint_pct',
+      'ltvA','rateA','yearsA','closeA','ltvB','rateB','yearsB','closeB',
+      'prop_tax_pct','insurance','prop_tax_g','ins_g','cap_rate_input',
+      'use_season','nights','occ_pct','guests','pppn','wknd_prem','wknd_share','price_includes_tax',
+      'wknd_prem_s','wknd_share_s','price_includes_tax2',
+      'meals_pct','lodging_tax_pct','sales_tax_meals',
+      'ota_share','ota_fee','card_fee','direct_fee',
+      'food_pppn','var_pppn','fte','salary','burden_pct','utilities','marketing','misc','housekeeping'
+    ];
+    const obj = {};
+    ids.forEach(id => obj[id] = document.getElementById(id).value);
+    obj.season = readSeason();
+    obj.assets = serializeAssets();
+    obj.capex = serializeCapex();
+    obj.fixes = serializeFixes();
+    return obj;
+  }
+  function writeInputs(obj){
+    Object.entries(obj).forEach(([k,v]) => {
+      const el = document.getElementById(k);
+      if(el && typeof v !== 'object') el.value = v;
+    });
+    // season rows
+    const tbody = document.querySelector('#season tbody');
+    tbody.innerHTML = '';
+    months.forEach(([m,days], idx)=>{
+      const tr = document.createElement('tr');
+      const row = obj.season && obj.season[idx] || {nights:days, occ:0.55, pppn:375};
+      tr.innerHTML = `<td>${m}</td>
+        <td><input type="number" value="${row.nights}" min="0" max="${days}" data-k="nights"></td>
+        <td><input type="number" value="${Math.round((row.occ||0)*100)}" min="0" max="100" step="1" data-k="occ"></td>
+        <td><input type="number" value="${row.pppn}" min="0" step="1" data-k="pppn"></td>`;
+      tbody.appendChild(tr);
+      tr.querySelectorAll('input').forEach(inp => inp.addEventListener('input', ()=>render(compute())));
+    });
+    // assets
+    assetsTbody.innerHTML='';
+    (obj.assets||[]).forEach(addAssetRow);
+    // capex
+    capexTbody.innerHTML='';
+    (obj.capex||[]).forEach(addCapexRow);
+    // fixes
+    fixesTbody.innerHTML='';
+    (obj.fixes||[]).forEach(addFixRow);
+    // show season block
+    toggleSeasonBlocks();
+  }
+
+  function snapshot(){ return readInputs(); }
+
+  function applySnapshot(snap){
+    writeInputs(snap);
+    return compute();
+  }
+
+  function updateCompare(){
+    if(!snapA || !snapB) return;
+    const cur = readInputs();
+    const outA = applySnapshot(snapA);
+    const outB = applySnapshot(snapB);
+    // restore current
+    writeInputs(cur);
+    const res = compute();
+    render(res);
+
+    function setRow(id, a, b, isInt=false){
+      const fmtA = isInt ? nf0.format(Math.round(a)) : fmt.format(a);
+      const fmtB = isInt ? nf0.format(Math.round(b)) : fmt.format(b);
+      const fmtD = isInt ? nf0.format(Math.round(b-a)) : fmt.format(b-a);
+      document.getElementById(id+'_a').textContent = fmtA;
+      document.getElementById(id+'_b').textContent = fmtB;
+      document.getElementById(id+'_d').textContent = fmtD;
+    }
+    setRow('c_guest', outA.guestNights, outB.guestNights, true);
+    setRow('c_gross', outA.grossRevenue, outB.grossRevenue, false);
+    setRow('c_net', outA.netRev, outB.netRev, false);
+    setRow('c_ebitda', outA.ebitda, outB.ebitda, false);
+    setRow('c_debt', outA.debtTotal, outB.debtTotal, false);
+    setRow('c_cash', outA.cashAfter, outB.cashAfter, false);
+    document.getElementById('c_dscr_a').textContent = outA.debtTotal>0 ? nf2.format(outA.dscr) : '—';
+    document.getElementById('c_dscr_b').textContent = outB.debtTotal>0 ? nf2.format(outB.dscr) : '—';
+    document.getElementById('c_dscr_d').textContent = (outB.debtTotal>0 && outA.debtTotal>0) ? nf2.format(outB.dscr - outA.dscr) : '—';
+    setRow('c_val', outA.valueCap, outB.valueCap, false);
+  }
+
+  // CSV export
+  $('saveCsv').addEventListener('click', ()=>{
+    const res = compute();
+    const inputs = readInputs();
+    const rows = [];
+    rows.push('key,value');
+    Object.entries(inputs).forEach(([k,v])=>{
+      if(k==='season' || k==='assets' || k==='capex' || k==='fixes') return;
+      rows.push(`${k},${String(v).replace(/,/g,';')}`);
+    });
+    rows.push('metric,value');
+    const metrics = {
+      capex: res.capex, fin_base_a: res.finBaseA, fin_base_b: res.finBaseB, loanA: res.loanA, loanB: res.loanB, loan_total: res.loanTotal,
+      equity: res.equity, assessed: res.assessed, prop_tax: res.prop_tax, guest_nights: res.guestNights, lodging_rev: res.lodgingRevenue,
+      meals_rev: res.mealsRevenue, other_rev: res.otherRevenue, gross_rev: res.grossRevenue, lodging_tax: res.lodgingTax,
+      sales_tax_meals: res.salesTaxMealsTotal, net_rev: res.netRev, ota_costs: res.otaCosts, card_costs: res.cardCosts, var_costs: res.variableCosts,
+      other_cogs: res.otherCogs, maint: res.maint, reserve: res.reserve, staff_total: res.staffTotal, fixed_opex: res.fixedOpex,
+      ebitda: res.ebitda, debtA: res.debtA, debtB: res.debtB, debt_total: res.debtTotal, cash_after: res.cashAfter, dscr: res.dscr,
+      debt_yield: res.debtYield, cap_rate: res.capRate, value_cap: res.valueCap, ltv_on_value: res.ltvOnValue
+    };
+    Object.entries(metrics).forEach(([k,v])=> rows.push(`${k},${v}`));
+    rows.push('assets_type,qty,unit,group,in_loan,line_total');
+    serializeAssets().forEach(a => rows.push([a.type, a.qty, a.unit, a.group, a.inloan?'yes':'no', a.qty*a.unit].join(',')));
+    rows.push('custom_capex_desc,amount,group,in_loan,assessed');
+    serializeCapex().forEach(c => rows.push([c.desc, c.amt, c.group, c.inloan?'yes':'no', c.assessed?'yes':'no'].join(',')));
+    rows.push('other_fixed_desc,amount');
+    serializeFixes().forEach(f => rows.push([f.desc, f.amt].join(',')));
+    const blob = new Blob([rows.join('\\n')], {type:'text/csv'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'us_retreat_case_pro_inline.csv';
+    a.click(); URL.revokeObjectURL(a.href);
+  });
+
+  // Save/load
+  $('saveLocal').addEventListener('click', ()=>{
+    const data = readInputs();
+    localStorage.setItem('us_retreat_calc_pro_inline', JSON.stringify(data));
+    alert('Saved');
+  });
+  $('loadLocal').addEventListener('click', ()=>{
+    const raw = localStorage.getItem('us_retreat_calc_pro_inline');
+    if(!raw){ alert('Nothing saved'); return; }
+    const data = JSON.parse(raw);
+    writeInputs(data);
+    render(compute());
+  });
+
+  // Snapshots
+  $('snapA').addEventListener('click', ()=>{ snapA = readInputs(); alert('Saved current inputs as Scenario A'); });
+  $('snapB').addEventListener('click', ()=>{ snapB = readInputs(); alert('Saved current inputs as Scenario B'); updateCompare(); });
+
+  // Print / PDF
+  $('printPdf').addEventListener('click', ()=> window.print());
+
+  // Buttons
+  $('addAsset').addEventListener('click', ()=> { addAssetRow({type:'Item', qty:1, unit:10000, group:'B', inloan:true}); render(compute()); });
+  $('resetAssets').addEventListener('click', ()=>{ assetsTbody.innerHTML=''; defaultAssets.forEach(addAssetRow); render(compute()); });
+
+  $('addCapex').addEventListener('click', ()=> { addCapexRow({desc:'CapEx item', amt:10000, group:'B', inloan:true, assessed:true}); render(compute()); });
+  $('resetCapex').addEventListener('click', ()=>{ capexTbody.innerHTML=''; defaultCapex.forEach(addCapexRow); render(compute()); });
+
+  $('addFix').addEventListener('click', ()=> { addFixRow({desc:'Fixed expense', amt:1000}); render(compute()); });
+
+  // Seasonality toggle
+  function toggleSeasonBlocks(){
+    const useSeason = $('use_season').value === 'yes';
+    $('simpleBlock').style.display = useSeason ? 'none' : 'block';
+    $('seasonBlock').style.display = useSeason ? 'block' : 'none';
+    if(useSeason) monthRows();
+  }
+  $('use_season').addEventListener('change', ()=>{ toggleSeasonBlocks(); render(compute()); });
+
+  // Input change handler to recompute
+  const ids = [
+    'purchase','purchase_group','soft_pct','infra','cont_pct','reserve_pct','maint_pct',
+    'ltvA','rateA','yearsA','closeA','ltvB','rateB','yearsB','closeB',
+    'prop_tax_pct','insurance','prop_tax_g','ins_g','cap_rate_input',
+    'nights','occ_pct','guests','pppn','wknd_prem','wknd_share','price_includes_tax',
+    'wknd_prem_s','wknd_share_s','price_includes_tax2',
+    'meals_pct','lodging_tax_pct','sales_tax_meals',
+    'ota_share','ota_fee','card_fee','direct_fee',
+    'food_pppn','var_pppn','fte','salary','burden_pct','utilities','marketing','misc','housekeeping',
+    'spa_pppn','spa_margin','work_pppn','work_margin','xfer_pppn','xfer_margin'
+  ];
+  ids.forEach(id => $(id)?.addEventListener('input', ()=>{ render(compute()); }));
+
+  // Init defaults safely
+  try{
+    // Build default rows
+    assetsTbody.innerHTML=''; defaultAssets.forEach(addAssetRow);
+    capexTbody.innerHTML=''; defaultCapex.forEach(addCapexRow);
+    fixesTbody.innerHTML='';
+    monthRows();
+    toggleSeasonBlocks();
+    const res = compute();
+    render(res);
+    // Double-check render after a short delay
+    setTimeout(()=>{
+      if(!($('capex').textContent || '').includes('$')){
+        // slight nudge to force refresh
+        $('purchase').value = String((+$('purchase').value||0) + 1);
+        $('purchase').dispatchEvent(new Event('input'));
+      }
+    }, 300);
+  } catch(e){
+    showErr('Init error: ' + e.message);
+  }
+})();
+</script>
+</body>
+</html>
