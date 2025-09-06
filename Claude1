@@ -1,0 +1,550 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>US Retreat & Eco‑Lodge Calculator — Pro 2</title>
+  <style>
+    :root{
+      --bg:#f6f7fb; --card:#ffffff; --ink:#111; --muted:#555;
+      --line:#e5e7ef; --accent:#2563eb; --accent-ink:#fff;
+      --warn:#b45309; --ok:#15803d; --error:#dc2626;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; color:var(--ink); background:var(--bg);}
+    header{position:sticky; top:0; z-index:10; background:#fff; border-bottom:1px solid var(--line); padding:14px 16px;}
+    header h1{margin:0; font-size:20px}
+    header p{margin:2px 0 0; color:var(--muted); font-size:13px}
+    main{max-width:1350px; margin:16px auto; padding:0 16px 40px}
+    .grid{display:grid; gap:16px; grid-template-columns: repeat(12, 1fr);}
+    .card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px;}
+    .span-3{grid-column: span 3} .span-4{grid-column: span 4} .span-5{grid-column: span 5} .span-6{grid-column: span 6} .span-8{grid-column: span 8} .span-12{grid-column: span 12}
+    h2{font-size:16px; margin:0 0 10px}
+    h3{font-size:13px; margin:14px 0 6px; color:var(--muted);}
+    label{display:block; font-size:12px; color:var(--muted); margin:10px 0 6px}
+    input, select{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#fff; font-size:14px; color:var(--ink);}
+    input[type="checkbox"]{width:auto}
+    input:invalid{border-color:var(--error);}
+    .row{display:flex; gap:10px} .row > div{flex:1}
+    .toolbar{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px}
+    button{padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:#fff; cursor:pointer; font-size:14px; transition:all 0.2s;}
+    button:hover{background:#f8f9fa;}
+    button:focus{outline:2px solid var(--accent); outline-offset:2px;}
+    button.primary{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
+    button.primary:hover{background:#1d4ed8;}
+    button:disabled{opacity:0.5; cursor:not-allowed;}
+    table{width:100%; border-collapse:collapse; font-size:14px}
+    th, td{text-align:right; padding:10px; border-bottom:1px solid var(--line)}
+    th:first-child, td:first-child{text-align:left}
+    tfoot td{font-weight:600}
+    .pill{display:inline-block; padding:2px 8px; border:1px solid var(--line); border-radius:999px; font-size:12px; color:var(--muted); background:#fff}
+    .small{font-size:12px; color:var(--muted)} 
+    .help{cursor:help; border-bottom:1px dotted var(--muted); position:relative;}
+    .help:hover::after{content:attr(title); position:absolute; bottom:100%; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:8px; border-radius:6px; font-size:11px; white-space:nowrap; z-index:1000; margin-bottom:5px;}
+    .warn{color:var(--warn)} .ok{color:var(--ok)} .error{color:var(--error)} .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+    .table-scroll{max-height:260px; overflow:auto; border:1px solid var(--line); border-radius:10px}
+    .del{color:#991b1b; cursor:pointer; font-size:13px; padding:4px 8px; border-radius:4px; transition:background 0.2s;}
+    .del:hover{background:#fee2e2;}
+    .del:focus{outline:2px solid var(--error); outline-offset:1px;}
+    .right{margin-left:auto}
+    .notification{position:fixed; top:20px; right:20px; padding:12px 16px; border-radius:8px; background:var(--ok); color:#fff; font-size:14px; z-index:1001; transform:translateX(100%); transition:transform 0.3s;}
+    .notification.show{transform:translateX(0);}
+    .notification.error{background:var(--error);}
+    .dirty-indicator{display:none; color:var(--warn); font-size:12px; margin-left:8px;}
+    .dirty-indicator.show{display:inline;}
+    @media (max-width: 1200px){ .span-3,.span-4{grid-column: span 6} }
+    @media (max-width: 800px){ .span-3,.span-4,.span-5,.span-6,.span-8{grid-column: span 12} }
+    @media print{ header, .toolbar, .table-scroll{display:none !important} main{margin:0; padding:0} .card{border:none; padding:8px} }
+  </style>
+</head>
+<body>
+  <div id="notification" class="notification"></div>
+
+  <header>
+    <h1>US Retreat & Eco‑Lodge Calculator — Pro 2 <span id="dirtyIndicator" class="dirty-indicator">●</span></h1>
+    <p>Multi‑loan groups, seasonality, weekday/weekend premium, revenue streams, OTA & card fees, reserves, valuation, compare, CSV, PDF.</p>
+  </header>
+
+  <main>
+    <div class="grid">
+
+```
+  <!-- PROJECT & ASSETS -->
+  <div class="card span-5">
+    <div class="toolbar">
+      <h2 style="margin:0">Project</h2>
+      <button class="right" id="printPdf">Print / PDF</button>
+    </div>
+    <div class="row">
+      <div>
+        <label>Land or existing property purchase, USD
+          <input type="number" id="purchase" value="650000" step="1000" min="0" max="50000000">
+        </label>
+      </div>
+      <div>
+        <label>Assign purchase to loan group <span class="help" title="Which lender finances the land. Choose None to pay cash for land." aria-label="Help: Which lender finances the land">?</span>
+          <select id="purchase_group" aria-label="Purchase loan group">
+            <option value="A" selected>Group A</option>
+            <option value="B">Group B</option>
+            <option value="none">None</option>
+          </select>
+        </label>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Soft costs %, permits, design <span class="help" title="Percent of purchase + structures for architect, permits, engineering, surveys, legal, lender fees." aria-label="Help: Soft costs percentage">?</span>
+          <input type="number" id="soft_pct" value="8" step="0.5" min="0" max="50">
+        </label>
+      </div>
+      <div>
+        <label>Infrastructure, site works, utilities, USD <span class="help" title="Grading, septic, well, power runs, roads, parking, landscaping." aria-label="Help: Infrastructure costs">?</span>
+          <input type="number" id="infra" value="220000" step="1000" min="0" max="10000000">
+        </label>
+      </div>
+    </div>
+
+    <h3>Structures and site items</h3>
+    <div class="small">Add cabins, tents, spa buildings. Choose a loan group and toggle whether it's financed.</div>
+    <div class="toolbar">
+      <button class="primary" id="addAsset">Add structure</button>
+      <button id="resetAssets">Reset structures</button>
+    </div>
+    <div class="table-scroll">
+      <table id="assets">
+        <thead>
+          <tr>
+            <th style="min-width:130px">Type</th>
+            <th>Qty</th>
+            <th>Unit cost</th>
+            <th>Group</th>
+            <th>In loan?</th>
+            <th>Line total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5">Structures total</td>
+            <td id="structures_total" class="mono">$0</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <h3>Custom CapEx (non-structure)</h3>
+    <div class="small">Add additional capital items like large equipment or site art. You can choose if they affect assessed value.</div>
+    <div class="toolbar">
+      <button class="primary" id="addCapex">Add CapEx item</button>
+      <button id="resetCapex">Reset CapEx</button>
+    </div>
+    <div class="table-scroll">
+      <table id="capex">
+        <thead>
+          <tr>
+            <th style="min-width:130px">Description</th>
+            <th>Amount</th>
+            <th>Group</th>
+            <th>In loan?</th>
+            <th>Counts toward assessed?</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4">Custom CapEx total</td>
+            <td id="capex_total" class="mono" colspan="2">$0</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <h3>Contingency & reserves</h3>
+    <div class="row">
+      <div>
+        <label>Contingency % on structures <span class="help" title="Build contingency applied to structures only." aria-label="Help: Construction contingency">?</span>
+          <input type="number" id="cont_pct" value="10" step="0.5" min="0" max="50">
+        </label>
+      </div>
+      <div>
+        <label>Maintenance % of structures annually <span class="help" title="Annual maintenance as percent of structure value." aria-label="Help: Annual maintenance percentage">?</span>
+          <input type="number" id="maint_pct" value="2.0" step="0.1" min="0" max="10">
+        </label>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Replacement reserve % of structures <span class="help" title="Annual reserve set aside for future refurbishments and replacements." aria-label="Help: Replacement reserve percentage">?</span>
+          <input type="number" id="reserve_pct" value="1.0" step="0.1" min="0" max="10">
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- FINANCE GROUPS -->
+  <div class="card span-3">
+    <h2>Finance — Group A</h2>
+    <div class="row">
+      <div>
+        <label>LTV % (A) <span class="help" title="Loan-to-Value for items assigned to A." aria-label="Help: Loan to value ratio">?</span>
+          <input type="number" id="ltvA" value="70" step="1" min="0" max="95">
+        </label>
+      </div>
+      <div>
+        <label>Rate % (A) <span class="help" title="Annual interest rate for Loan A." aria-label="Help: Interest rate">?</span>
+          <input type="number" id="rateA" value="6.8" step="0.1" min="0" max="50">
+        </label>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Amort years (A) <span class="help" title="Amortization period in years for Loan A." aria-label="Help: Loan term">?</span>
+          <input type="number" id="yearsA" value="20" step="1" min="1" max="50">
+        </label>
+      </div>
+      <div>
+        <label>Closing costs, USD (A) <span class="help" title="Upfront costs paid in cash at closing for Loan A." aria-label="Help: Loan closing costs">?</span>
+          <input type="number" id="closeA" value="8000" step="500" min="0" max="500000">
+        </label>
+      </div>
+    </div>
+
+    <h2 style="margin-top:14px">Finance — Group B</h2>
+    <div class="row">
+      <div>
+        <label>LTV % (B)
+          <input type="number" id="ltvB" value="65" step="1" min="0" max="95">
+        </label>
+      </div>
+      <div>
+        <label>Rate % (B)
+          <input type="number" id="rateB" value="7.5" step="0.1" min="0" max="50">
+        </label>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Amort years (B)
+          <input type="number" id="yearsB" value="15" step="1" min="1" max="50">
+        </label>
+      </div>
+      <div>
+        <label>Closing costs, USD (B)
+          <input type="number" id="closeB" value="7000" step="500" min="0" max="500000">
+        </label>
+      </div>
+    </div>
+
+    <h3>Taxes & insurance</h3>
+    <div class="row">
+      <div>
+        <label>Property tax % of assessed
+          <input type="number" id="prop_tax_pct" value="1.2" step="0.1" min="0" max="10">
+        </label>
+      </div>
+      <div>
+        <label>Annual insurance, USD
+          <input type="number" id="insurance" value="9000" step="500" min="0" max="500000">
+        </label>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Prop tax growth %/yr <span class="help" title="Expected annual increase in property tax." aria-label="Help: Property tax inflation">?</span>
+          <input type="number" id="prop_tax_g" value="3" step="0.5" min="0" max="20">
+        </label>
+      </div>
+      <div>
+        <label>Insurance growth %/yr <span class="help" title="Expected annual increase in insurance." aria-label="Help: Insurance inflation">?</span>
+          <input type="number" id="ins_g" value="6" step="0.5" min="0" max="20">
+        </label>
+      </div>
+    </div>
+    <h3>Valuation</h3>
+    <label>Exit cap rate % <span class="help" title="Value = EBITDA ÷ cap rate. Ignores financing." aria-label="Help: Capitalization rate for valuation">?</span>
+      <input type="number" id="cap_rate_input" value="9.0" step="0.1" min="1" max="50">
+    </label>
+  </div>
+
+  <!-- OPERATIONS & REVENUE -->
+  <div class="card span-4">
+    <h2>Operations & Revenue</h2>
+    <div class="row">
+      <div>
+        <label>Use seasonality?
+          <select id="use_season" aria-label="Enable seasonal pricing">
+            <option value="no" selected>No</option>
+            <option value="yes">Yes</option>
+          </select>
+        </label>
+      </div>
+      <div>
+        <label>Avg guests per night
+          <input type="number" id="guests" value="10" step="1" min="0" max="200">
+        </label>
+      </div>
+    </div>
+
+    <div id="simpleBlock">
+      <div class="row">
+        <div>
+          <label>Nights listed per year
+            <input type="number" id="nights" value="365" step="5" min="0" max="366">
+          </label>
+        </div>
+        <div>
+          <label>Occupancy %
+            <input type="number" id="occ_pct" value="55" step="1" min="0" max="100">
+          </label>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Price per person per night, USD <span class="help" title="Per person, per night. Usually includes meals. Couples pay double." aria-label="Help: Base price per person">?</span>
+            <input type="number" id="pppn" value="375" step="5" min="0" max="5000">
+          </label>
+        </div>
+        <div>
+          <label>Weekend premium % <span class="help" title="Average price uplift on weekend nights." aria-label="Help: Weekend price premium">?</span>
+            <input type="number" id="wknd_prem" value="15" step="1" min="0" max="200">
+          </label>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Weekend share % of nights <span class="help" title="Share of weekend nights in your calendar. US average is ~28–29%." aria-label="Help: Weekend night percentage">?</span>
+            <input type="number" id="wknd_share" value="28.6" step="0.1" min="0" max="100">
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div id="seasonBlock" style="display:none">
+      <div class="small" style="margin-bottom:8px">Enter per-month nights, occupancy, and base price per person per night.</div>
+      <div class="table-scroll">
+        <table id="season">
+          <thead>
+            <tr><th>Month</th><th>Nights</th><th>Occ %</th><th>Price pppn</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="row">
+        <div>
+          <label>Weekend premium %
+            <input type="number" id="wknd_prem_s" value="15" step="1" min="0" max="200">
+          </label>
+        </div>
+        <div>
+          <label>Weekend share %
+            <input type="number" id="wknd_share_s" value="28.6" step="0.1" min="0" max="100">
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <h3>Tax split</h3>
+    <div class="row">
+      <div>
+        <label>Meals portion of price % <span class="help" title="Share of nightly price that represents food and beverage value." aria-label="Help: Meals percentage">?</span>
+          <input type="number" id="meals_pct" value="25" step="1" min="0" max="100">
+        </label>
+      </div>
+      <div>
+        <label>Lodging tax % <span class="help" title="Room/occupancy tax on lodging revenue." aria-label="Help: Lodging tax rate">?</span>
+          <input type="number" id="lodging_tax_pct" value="10" step="0.5" min="0" max="50">
+        </label>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Sales tax on meals % <span class="help" title="Sales tax rate applied to the meals portion." aria-label="Help: Meals tax rate">?</span>
+          <input type="number" id="sales_tax_meals" value="8.5" step="0.1" min="0" max="50">
+        </label>
+      </div>
+      <div>
+        <label>Price includes taxes?
+          <select id="price_includes_tax" aria-label="Price includes taxes">
+            <option value="no" selected>No</option>
+            <option value="yes">Yes</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <h3>Channels & fees</h3>
+    <div class="row">
+      <div>
+        <label>Share via OTA % <span class="help" title="Percent of bookings that come through an Online Travel Agency like Airbnb or Booking." aria-label="Help: OTA booking percentage">?</span>
+          <input type="number" id="ota_share" value="45" step="1" min="0" max="100">
+        </label>
+      </div>
+      <div>
+        <label>OTA fee % <span class="help" title="Commission on lodging portion only." aria-label="Help: OTA commission rate">?</span>
+          <input type="number" id="ota_fee" value="15" step="0.5" min="0" max="50">
+        </label>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Card processing fee % <span class="help" title="Blended payment processing fee. Applies to total customer charge for direct bookings." aria-label="Help: Payment processing fee">?</span>
+          <input type="number" id="card_fee" value="2.9" step="0.1" min="0" max="10">
+        </label>
+      </div>
+      <div>
+        <label>Direct booking platform % <span class="help" title="If you use a direct engine that charges a fee, add it here." aria-label="Help: Direct booking platform fee">?</span>
+          <input type="number" id="direct_fee" value="1.0" step="0.1" min="0" max="10">
+        </label>
+      </div>
+    </div>
+
+    <h3>Variable & fixed costs</h3>
+    <div class="row">
+      <div>
+        <label>Food cost per guest-night
+          <input type="number" id="food_pppn" value="30" step="1" min="0" max="500">
+        </label>
+      </div>
+      <div>
+        <label>Other variable cost per guest-night
+          <input type="number" id="var_pppn" value="18" step="1" min="0" max="500">
+        </label>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label># of FTE staff
+          <input type="number" id="fte" value="4" step="0.5" min="0" max="100">
+        </label>
+      </div>
+      <div>
+        <label>Avg salary per FTE, USD
+          <input type="number" id="salary" value="45000" step="1000" min="0" max="500000">
+        </label>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Payroll burden % <span class="help" title="Payroll taxes, benefits, workers comp." aria-label="Help: Payroll burden rate">?</span>
+          <input type="number" id="burden_pct" value="14" step="0.5" min="0" max="100">
+        </label>
+      </div>
+      <div>
+        <label>Utilities, USD
+          <input type="number" id="utilities" value="20000" step="500" min="0" max="500000">
+        </label>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Marketing, USD
+          <input type="number" id="marketing" value="14000" step="500" min="0" max="500000">
+        </label>
+      </div>
+      <div>
+        <label>HOA, licenses, misc, USD
+          <input type="number" id="misc" value="10000" step="500" min="0" max="500000">
+        </label>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Housekeeping, laundry, USD
+          <input type="number" id="housekeeping" value="18000" step="500" min="0" max="500000">
+        </label>
+      </div>
+      <div>
+        <label>Other fixed annual expenses <span class="help" title="Add any annual fixed costs not covered above." aria-label="Help: Additional fixed expenses">?</span>
+          <button id="addFix" type="button">Add</button>
+        </label>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table id="fixes">
+        <thead><tr><th style="min-width:130px">Description</th><th>Amount</th><th></th></tr></thead>
+        <tbody></tbody>
+        <tfoot><tr><td>Total other fixed</td><td id="fixes_total" class="mono">$0</td><td></td></tr></tfoot>
+      </table>
+    </div>
+
+    <h3>Extra revenue streams</h3>
+    <div class="row">
+      <div>
+        <label>Spa revenue per guest-night <span class="help" title="Average spa or treatment spend per guest per night." aria-label="Help: Spa revenue per guest">?</span>
+          <input type="number" id="spa_pppn" value="20" step="1" min="0" max="1000">
+        </label>
+      </div>
+      <div>
+        <label>Spa gross margin % <span class="help" title="Percent of spa revenue that remains after therapist pay and supplies." aria-label="Help: Spa profit margin">?</span>
+          <input type="number" id="spa_margin" value="55" step="1" min="0" max="100">
+        </label>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Workshops revenue per guest-night
+          <input type="number" id="work_pppn" value="10" step="1" min="0" max="1000">
+        </label>
+      </div>
+      <div>
+        <label>Workshops margin %
+          <input type="number" id="work_margin" value="70" step="1" min="0" max="100">
+        </label>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Transfers/gear revenue per guest-night
+          <input type="number" id="xfer_pppn" value="6" step="1" min="0" max="1000">
+        </label>
+      </div>
+      <div>
+        <label>Transfers/gear margin %
+          <input type="number" id="xfer_margin" value="40" step="1" min="0" max="100">
+        </label>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RESULTS & COMPARE -->
+  <div class="card span-8">
+    <div class="toolbar">
+      <button class="primary" id="saveCsv">Export CSV</button>
+      <button id="saveLocal">Save inputs</button>
+      <button id="loadLocal">Load inputs</button>
+      <button id="resetAll">Reset defaults</button>
+      <button id="snapA">Save as Scenario A</button>
+      <button id="snapB">Save as Scenario B</button>
+      <span class="small muted">Tooltips are marked with a small question mark.</span>
+    </div>
+    <table id="results">
+      <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Total project cost</td><td id="capex">—</td></tr>
+        <tr><td>Financeable base (A)</td><td id="fin_base_a">—</td></tr>
+        <tr><td>Financeable base (B)</td><td id="fin_base_b">—</td></tr>
+        <tr><td>Loan A principal</td><td id="loanA">—</td></tr>
+        <tr><td>Loan B principal</td><td id="loanB">—</td></tr>
+        <tr><td>Total loan principal</td><td id="loan_total">—</td></tr>
+        <tr><td>Equity needed incl. closing</td><td id="equity">—</td></tr>
+        <tr><td>Assessed value for property tax</td><td id="assessed">—</td></tr>
+        <tr><td>Property tax (year 1)</td><td id="prop_tax">—</td></tr>
+        <tr><td>Guest‑nights</td><td id="guest_nights">—</td></tr>
+        <tr><td>Lodging revenue</td><td id="lodging_rev">—</td></tr>
+        <tr><td>Meals revenue</td><td id="meals_rev">—</td></tr>
+        <tr><td>Other revenue (spa/workshops/transfers)</td><td id="other_rev">—</td></tr>
+        <tr><td><b>Gross revenue</b></td><td id="gross_rev">—</td></tr>
+        <tr><td>Lodging tax collected</td><td id="lodging_tax">—</td></tr>
+        <tr><td>Sales tax on meals</td><td id="sales_tax_meals_out">—</td></tr>
+        <tr><td>Revenue net of taxes</td><td id="net_rev">—</td></tr>
+        <tr><td>OTA commissions</td><td id="ota_costs">—</td></tr>
+        <tr><td>Card + direct platform fees</td><td id="card_costs">—</td></tr>
+        <tr><td>Variable costs (food + other)</td><td id="var_costs">—</td></tr>
+        <tr><td>Other COGS (spa/workshops/transfers)</td><td id="other_cogs">—</td></tr>
+        <tr
+```
